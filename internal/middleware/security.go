@@ -3,6 +3,7 @@ package middleware
 import (
 	"crypto/subtle"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -32,6 +33,12 @@ func SecureHeaders() func(http.Handler) http.Handler {
 func RequireHTTPS() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Allow loopback requests (container health checks)
+			if isLoopback(r.RemoteAddr) {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			isHTTPS := r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https")
 
 			if !isHTTPS {
@@ -226,6 +233,15 @@ func BodyLimit(maxBytes int64) func(http.Handler) http.Handler {
 }
 
 // --- helpers ---
+
+func isLoopback(remoteAddr string) bool {
+	host, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		host = remoteAddr
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
+}
 
 func extractOriginDomain(r *http.Request) string {
 	origin := r.Header.Get("Origin")
