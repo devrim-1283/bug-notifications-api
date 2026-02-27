@@ -208,3 +208,216 @@ Bu projenin gelistirilmesinde AI araclari kullanilmistir.
 ## Lisans
 
 MIT
+
+---
+
+# Bug Notifications API (English)
+
+A minimal and secure microservice that collects bug reports from websites, processes them through a Redis queue, and persists them to PostgreSQL.
+
+## Architecture
+
+```
+Browser -> Your Site's Backend (BFF) -> Bug Notifications API -> Redis Queue -> Worker -> PostgreSQL
+```
+
+| Layer | Role |
+|-------|------|
+| **API** | Receives requests, validates, writes to queue |
+| **Redis Queue** | Buffers messages, absorbs traffic spikes |
+| **Worker** | Reads from queue, writes to PostgreSQL |
+| **DLQ** | Failed messages are moved to dead-letter queue |
+
+## Features
+
+- **Single endpoint:** `POST /v1/reports` (202 Accepted, async processing)
+- **Health check:** `GET /health`
+- **5-layer security:** CORS + API Key + Origin matching + Browser-only + Rate limit
+- **Retry & DLQ:** 5 retry attempts on failed DB inserts, then DLQ
+- **Idempotency:** Duplicate prevention via `event_id`
+- **Horizontally scalable:** Worker count adjustable via `WORKER_CONCURRENCY`
+
+## Security
+
+| Layer | Protection |
+|-------|------------|
+| CORS | Only allows registered site domains |
+| API Key | Validation via `X-API-Key` header |
+| Origin Match | API key must match the requesting domain |
+| Browser-Only | `Sec-Fetch-Site` + `User-Agent` checks (blocks Postman/curl) |
+| Rate Limit | IP-based token bucket (default: 10 req/s) |
+
+> **API Key Security:** Each API key is locked to a domain. Even when used directly from the frontend, the same key cannot be used from a different domain (Origin + CORS + Sec-Fetch checks). For extra privacy, you can use the BFF (Backend For Frontend) pattern — in this case, the API key stays only on your server and is never exposed to the user.
+
+## Requirements
+
+- Go 1.25+
+- Redis
+- PostgreSQL
+
+## Setup
+
+```bash
+# Clone the repo
+git clone <repo-url>
+cd bug-notifications-api
+
+# Create env file
+cp .env.example .env
+# Edit .env (DATABASE_URL, REDIS_URL, SITE_KEYS)
+
+# Generate API key (for each site)
+openssl rand -hex 32
+
+# Prepare database
+psql $DATABASE_URL -f migrations/001_create_bug_reports.sql
+
+# Dependencies
+go mod download
+```
+
+## Running
+
+### Local
+
+```bash
+# API server
+go run ./cmd/api
+
+# Worker (separate terminal)
+go run ./cmd/worker
+```
+
+### Docker
+
+```bash
+docker build -t bug-notifications-api .
+docker run -p 3000:3000 --env-file .env bug-notifications-api
+```
+
+### Deploy with Coolify
+
+1. Create a new project in Coolify
+2. Connect this repo as **Git Repository**
+3. Build Pack: **Dockerfile**
+4. Port: **3000** (auto-detected)
+5. Set environment variables via Coolify UI:
+   - `DATABASE_URL` — PostgreSQL connection string
+   - `REDIS_URL` — Redis connection string
+   - `SITE_KEYS` — domain:key pairs
+6. Deploy!
+
+**Running mode via MODE variable:**
+
+| Value | Description |
+|-------|-------------|
+| `all` (default) | API + Worker run in the same container |
+| `api` | API server only |
+| `worker` | Worker only |
+
+> **Recommendation:** For small/medium scale, `MODE=all` is sufficient. For high traffic, deploy API and Worker as separate Coolify services (`MODE=api` and `MODE=worker`).
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `3000` | API server port |
+| `REDIS_URL` | `redis://localhost:6379` | Redis connection string |
+| `DATABASE_URL` | _(required)_ | PostgreSQL connection string |
+| `SITE_KEYS` | _(required)_ | `domain:key` pairs, comma separated |
+| `RATE_LIMIT_RPS` | `10` | Max requests per second per IP |
+| `WORKER_CONCURRENCY` | `10` | Number of parallel workers |
+| `MODE` | `all` | `all` / `api` / `worker` |
+| `TLS_CERT_FILE` | _(optional)_ | TLS certificate file |
+| `TLS_KEY_FILE` | _(optional)_ | TLS private key file |
+| `TRUSTED_PROXIES` | _(optional)_ | Trusted proxy CIDR ranges |
+
+**SITE_KEYS example:**
+```
+SITE_KEYS=example.com:a1b2c3d4e5f6,mysite.io:x9y8z7w6v5u4
+```
+
+## Project Structure
+
+```
+cmd/
+  api/           API server entrypoint
+  worker/        Worker entrypoint
+internal/
+  api/           HTTP handlers
+  config/        Configuration loader
+  db/            PostgreSQL connection and repository
+  middleware/    CORS, auth, rate limit, browser-only
+  model/         Data models
+  queue/         Redis producer/consumer
+  validate/      Input validation
+  worker/        Worker processing logic
+migrations/      SQL migration files
+```
+
+## API Usage
+
+### Submit Bug Report
+
+```
+POST /v1/reports
+```
+
+**Headers:**
+```
+Content-Type: application/json
+X-API-Key: <site-api-key>
+```
+
+**Body:**
+```json
+{
+  "site_id": "example.com",
+  "title": "Login button not working",
+  "description": "Nothing happens when clicking the login button on Safari",
+  "category": "functionality",
+  "page_url": "https://example.com/login",
+  "contact_type": "email",
+  "contact_value": "ali@example.com",
+  "first_name": "Ali",
+  "last_name": "Yilmaz"
+}
+```
+
+**Required fields:** `site_id`, `title`, `description`, `category`
+
+**Valid categories:** `design`, `functionality`, `performance`, `content`, `mobile`, `security`, `other`
+
+**Successful response (202):**
+```json
+{
+  "event_id": "550e8400-e29b-41d4-a716-446655440000",
+  "queued": true
+}
+```
+
+### Health Check
+
+```
+GET /health
+```
+
+```json
+{
+  "status": "ok"
+}
+```
+
+## Author
+
+Developed by **Devrim Tuncer**.
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Devrim%20Tun%C3%A7er-blue?logo=linkedin)](https://www.linkedin.com/in/devrim-tun%C3%A7er-218a55320/)
+
+This project is a product of [devrimsoft.com](https://devrimsoft.com) and is used in production.
+
+AI tools were used in the development of this project.
+
+## License
+
+MIT
