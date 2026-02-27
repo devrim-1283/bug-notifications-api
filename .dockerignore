@@ -3,8 +3,8 @@
 *.dll
 *.so
 *.dylib
-api
-worker
+/api
+/worker
 .env
 .env.*
 !.env.example
