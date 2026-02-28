@@ -20,11 +20,13 @@ export function SiteSelect({
   const hasAutoFilled = useRef(false);
 
   useEffect(() => {
-    if (value && !hasAutoFilled.current) {
+    if (value && !hasAutoFilled.current && !autoDetected) {
       onAutoFillUrl(`https://${value}`);
+    }
+    if (value) {
       hasAutoFilled.current = true;
     }
-  }, [value, onAutoFillUrl]);
+  }, [value, onAutoFillUrl, autoDetected]);
 
   function handleChange(siteId: string) {
     onChange(siteId);

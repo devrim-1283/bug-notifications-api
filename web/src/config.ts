@@ -15,6 +15,16 @@ const EMPTY_CONFIG: AppConfig = {
   portalDomain: '',
 };
 
+// Ensure all fields have safe defaults (guards against null from JSON)
+function normalize(cfg: AppConfig): AppConfig {
+  return {
+    apiKey: cfg.apiKey ?? '',
+    turnstileSiteKey: cfg.turnstileSiteKey ?? '',
+    sites: cfg.sites ?? [],
+    portalDomain: cfg.portalDomain ?? '',
+  };
+}
+
 export function getConfig(): AppConfig {
   if (cachedConfig) return cachedConfig;
 
@@ -28,13 +38,13 @@ export function getConfig(): AppConfig {
 
   // Already an object (injected as raw JSON by Go server)
   if (typeof raw === 'object') {
-    cachedConfig = raw as AppConfig;
+    cachedConfig = normalize(raw as AppConfig);
     return cachedConfig;
   }
 
   // String fallback (shouldn't happen but safe)
   try {
-    cachedConfig = JSON.parse(raw) as AppConfig;
+    cachedConfig = normalize(JSON.parse(raw) as AppConfig);
   } catch {
     cachedConfig = { ...EMPTY_CONFIG };
   }

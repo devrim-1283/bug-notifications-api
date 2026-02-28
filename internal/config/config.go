@@ -183,7 +183,7 @@ func (c *Config) IsPortal(domain string) bool {
 
 // ReportableDomains returns all registered domains except the portal domain.
 func (c *Config) ReportableDomains() []string {
-	var domains []string
+	domains := make([]string, 0)
 	for _, s := range c.Sites {
 		if !c.IsPortal(s.Domain) {
 			domains = append(domains, s.Domain)

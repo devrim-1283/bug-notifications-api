@@ -54,12 +54,13 @@ export function FeedbackForm({ onSuccess, resolvedTheme }: Props) {
     const ref = document.referrer;
     if (!ref) return;
     try {
-      const hostname = new URL(ref).hostname.toLowerCase();
+      const refUrl = new URL(ref);
+      const hostname = refUrl.hostname.toLowerCase();
       const match = config.sites.find(
         (s) => hostname === s || hostname.endsWith('.' + s)
       );
       if (match) {
-        setForm((prev) => ({ ...prev, siteId: match }));
+        setForm((prev) => ({ ...prev, siteId: match, pageUrl: ref }));
         setAutoDetectedSite(true);
       }
     } catch {
