@@ -26,7 +26,7 @@ export default function App() {
           <Header theme={theme} />
           <div className="form-body">
             {view === 'form' && (
-              <FeedbackForm key={view} onSuccess={() => setView('success')} />
+              <FeedbackForm key={view} onSuccess={() => setView('success')} resolvedTheme={theme.resolved} />
             )}
           </div>
           <div className="footer">

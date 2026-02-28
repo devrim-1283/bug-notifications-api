@@ -6,7 +6,6 @@ interface Props {
   value: string;
   onChange: (siteId: string) => void;
   onAutoFillUrl: (url: string) => void;
-  disabled: boolean;
   autoDetected: boolean;
 }
 
@@ -14,7 +13,6 @@ export function SiteSelect({
   value,
   onChange,
   onAutoFillUrl,
-  disabled,
   autoDetected,
 }: Props) {
   const { t } = useI18n();
@@ -37,7 +35,7 @@ export function SiteSelect({
   }
 
   return (
-    <div className="field">
+    <>
       <label>
         {t.labelSite} <span className="req">*</span>
       </label>
@@ -45,7 +43,6 @@ export function SiteSelect({
         value={value}
         onChange={(e) => handleChange(e.target.value)}
         required
-        disabled={disabled}
       >
         <option value="">{t.siteSelectPlaceholder}</option>
         {config.sites.map((s) => (
@@ -57,6 +54,6 @@ export function SiteSelect({
       {autoDetected && (
         <div className="field-note auto">{t.autoDetected}</div>
       )}
-    </div>
+    </>
   );
 }

@@ -20,7 +20,7 @@ export function CategorySelect({ value, onChange }: Props) {
   ];
 
   return (
-    <div className="field">
+    <>
       <label>
         {t.labelCategory} <span className="req">*</span>
       </label>
@@ -36,6 +36,6 @@ export function CategorySelect({ value, onChange }: Props) {
           </option>
         ))}
       </select>
-    </div>
+    </>
   );
 }

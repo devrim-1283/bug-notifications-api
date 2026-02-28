@@ -384,6 +384,26 @@ label .req {
   margin-left: 2px;
 }
 
+.field-error {
+  font-size: 0.625rem;
+  color: var(--error);
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+.has-error input,
+.has-error select,
+.has-error textarea {
+  border-color: var(--error);
+}
+
+.has-error input:focus,
+.has-error select:focus,
+.has-error textarea:focus {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
+}
+
 .field-note {
   font-size: 0.625rem;
   color: var(--muted);

@@ -31,6 +31,10 @@ export interface Translations {
   titlePlaceholderRequest: string;
   descPlaceholderBug: string;
   descPlaceholderRequest: string;
+  errSiteRequired: string;
+  errTitleRequired: string;
+  errCategoryRequired: string;
+  errDescRequired: string;
   maxImages: string;
   siteSelectPlaceholder: string;
   typeBug: string;
@@ -74,6 +78,10 @@ const translations: Record<Language, Translations> = {
       'Hatayı detaylı olarak açıklayın. Ne yaptığınızda, ne olmasını beklediğinizde ve ne olduğunu belirtin.',
     descPlaceholderRequest:
       'Önerinizi detaylı olarak açıklayın. Ne istediğinizi ve neden faydalı olacağını belirtin.',
+    errSiteRequired: 'Lütfen bir site seçiniz',
+    errTitleRequired: 'Lütfen başlık giriniz',
+    errCategoryRequired: 'Lütfen kategori seçiniz',
+    errDescRequired: 'Lütfen açıklama giriniz',
     maxImages: 'En fazla 5 görsel yüklenebilir',
     siteSelectPlaceholder: 'Site seçin...',
     typeBug: 'Hata Bildirimi',
@@ -116,6 +124,10 @@ const translations: Record<Language, Translations> = {
       'Describe the bug in detail. What did you do, what did you expect, and what happened?',
     descPlaceholderRequest:
       'Describe your suggestion in detail. What would you like and why would it be useful?',
+    errSiteRequired: 'Please select a site',
+    errTitleRequired: 'Please enter a title',
+    errCategoryRequired: 'Please select a category',
+    errDescRequired: 'Please enter a description',
     maxImages: 'Maximum 5 images allowed',
     siteSelectPlaceholder: 'Select a site...',
     typeBug: 'Bug Report',
@@ -158,6 +170,10 @@ const translations: Record<Language, Translations> = {
       'Beschreiben Sie den Fehler im Detail. Was haben Sie getan, was erwartet und was ist passiert?',
     descPlaceholderRequest:
       'Beschreiben Sie Ihren Vorschlag im Detail. Was wünschen Sie sich und warum wäre es nützlich?',
+    errSiteRequired: 'Bitte wählen Sie eine Webseite',
+    errTitleRequired: 'Bitte geben Sie einen Titel ein',
+    errCategoryRequired: 'Bitte wählen Sie eine Kategorie',
+    errDescRequired: 'Bitte geben Sie eine Beschreibung ein',
     maxImages: 'Maximal 5 Bilder erlaubt',
     siteSelectPlaceholder: 'Webseite auswählen...',
     typeBug: 'Fehlerbericht',
@@ -200,6 +216,10 @@ const translations: Record<Language, Translations> = {
       'Подробно опишите ошибку. Что вы делали, что ожидали и что произошло?',
     descPlaceholderRequest:
       'Подробно опишите предложение. Что вы хотите и почему это будет полезно?',
+    errSiteRequired: 'Пожалуйста, выберите сайт',
+    errTitleRequired: 'Пожалуйста, введите заголовок',
+    errCategoryRequired: 'Пожалуйста, выберите категорию',
+    errDescRequired: 'Пожалуйста, введите описание',
     maxImages: 'Максимум 5 изображений',
     siteSelectPlaceholder: 'Выбрать сайт...',
     typeBug: 'Ошибка',
@@ -242,6 +262,10 @@ const translations: Record<Language, Translations> = {
       'Детально опишіть помилку. Що ви робили, що очікували і що сталося?',
     descPlaceholderRequest:
       'Детально опишіть пропозицію. Що ви бажаєте і чому це буде корисно?',
+    errSiteRequired: 'Будь ласка, оберіть сайт',
+    errTitleRequired: 'Будь ласка, введіть заголовок',
+    errCategoryRequired: 'Будь ласка, оберіть категорію',
+    errDescRequired: 'Будь ласка, введіть опис',
     maxImages: 'Максимум 5 зображень',
     siteSelectPlaceholder: 'Обрати сайт...',
     typeBug: 'Помилка',
@@ -284,6 +308,10 @@ const translations: Record<Language, Translations> = {
       'Describa el error en detalle. ¿Qué hizo, qué esperaba y qué ocurrió?',
     descPlaceholderRequest:
       'Describa su sugerencia en detalle. ¿Qué le gustaría y por qué sería útil?',
+    errSiteRequired: 'Por favor, seleccione un sitio',
+    errTitleRequired: 'Por favor, ingrese un título',
+    errCategoryRequired: 'Por favor, seleccione una categoría',
+    errDescRequired: 'Por favor, ingrese una descripción',
     maxImages: 'Máximo 5 imágenes permitidas',
     siteSelectPlaceholder: 'Seleccionar sitio...',
     typeBug: 'Informe de error',

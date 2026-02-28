@@ -147,15 +147,8 @@ func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Turnstile verification — required when configured
-	if h.cfg.TurnstileSecretKey == "" {
-		writeJSON(w, http.StatusServiceUnavailable, model.ErrorResponse{
-			Error: "turnstile is not configured",
-			Code:  "TURNSTILE_NOT_CONFIGURED",
-		})
-		return
-	}
-	{
+	// Turnstile verification — skip when not configured, enforce when configured
+	if h.cfg.TurnstileSecretKey != "" {
 		var turnstileToken string
 		if strings.HasPrefix(ct, "multipart/form-data") {
 			turnstileToken = r.FormValue("cf-turnstile-response")

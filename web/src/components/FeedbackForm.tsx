@@ -16,6 +16,7 @@ import { TurnstileWidget } from './TurnstileWidget';
 
 interface Props {
   onSuccess: () => void;
+  resolvedTheme: 'light' | 'dark';
 }
 
 const EMPTY_FORM: ReportFormData = {
@@ -30,7 +31,14 @@ const EMPTY_FORM: ReportFormData = {
   email: '',
 };
 
-export function FeedbackForm({ onSuccess }: Props) {
+interface FieldErrors {
+  siteId?: string;
+  title?: string;
+  category?: string;
+  description?: string;
+}
+
+export function FeedbackForm({ onSuccess, resolvedTheme }: Props) {
   const { t } = useI18n();
   const config = getConfig();
 
@@ -40,6 +48,7 @@ export function FeedbackForm({ onSuccess }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [autoDetectedSite, setAutoDetectedSite] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   useEffect(() => {
     const ref = document.referrer;
@@ -63,6 +72,14 @@ export function FeedbackForm({ onSuccess }: Props) {
     value: ReportFormData[K]
   ) {
     setForm((prev) => ({ ...prev, [key]: value }));
+    // Clear field error when user starts typing/selecting
+    if (key in fieldErrors) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[key as keyof FieldErrors];
+        return next;
+      });
+    }
   }
 
   function handleReportTypeChange(type: ReportType) {
@@ -73,14 +90,30 @@ export function FeedbackForm({ onSuccess }: Props) {
     setImages([]);
     setTurnstileToken('');
     setError('');
+    setFieldErrors({});
   }
 
   const handleAutoFillUrl = useCallback((url: string) => {
     setForm((prev) => ({ ...prev, pageUrl: url }));
   }, []);
 
+  function validate(): boolean {
+    const errors: FieldErrors = {};
+
+    if (!form.siteId) errors.siteId = t.errSiteRequired;
+    if (!form.title.trim()) errors.title = t.errTitleRequired;
+    if (!form.category) errors.category = t.errCategoryRequired;
+    if (!form.description.trim()) errors.description = t.errDescRequired;
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!validate()) return;
+
     setError('');
     setSubmitting(true);
 
@@ -111,14 +144,18 @@ export function FeedbackForm({ onSuccess }: Props) {
         <div className="form-grid">
           {/* Left column */}
           <div className="form-col">
-            <SiteSelect
-              value={form.siteId}
-              onChange={(v) => updateField('siteId', v)}
-              onAutoFillUrl={handleAutoFillUrl}
-              disabled={autoDetectedSite}
-              autoDetected={autoDetectedSite}
-            />
-            <div className="field">
+            <div className={`field${fieldErrors.siteId ? ' has-error' : ''}`}>
+              <SiteSelect
+                value={form.siteId}
+                onChange={(v) => updateField('siteId', v)}
+                onAutoFillUrl={handleAutoFillUrl}
+                autoDetected={autoDetectedSite}
+              />
+              {fieldErrors.siteId && (
+                <div className="field-error">{fieldErrors.siteId}</div>
+              )}
+            </div>
+            <div className={`field${fieldErrors.title ? ' has-error' : ''}`}>
               <label>
                 {t.labelTitle} <span className="req">*</span>
               </label>
@@ -130,8 +167,11 @@ export function FeedbackForm({ onSuccess }: Props) {
                 value={form.title}
                 onChange={(e) => updateField('title', e.target.value)}
               />
+              {fieldErrors.title && (
+                <div className="field-error">{fieldErrors.title}</div>
+              )}
             </div>
-            <div className="field">
+            <div className={`field${fieldErrors.description ? ' has-error' : ''}`}>
               <label>
                 {t.labelDesc} <span className="req">*</span>
               </label>
@@ -142,15 +182,23 @@ export function FeedbackForm({ onSuccess }: Props) {
                 value={form.description}
                 onChange={(e) => updateField('description', e.target.value)}
               />
+              {fieldErrors.description && (
+                <div className="field-error">{fieldErrors.description}</div>
+              )}
             </div>
           </div>
 
           {/* Right column */}
           <div className="form-col">
-            <CategorySelect
-              value={form.category}
-              onChange={(v) => updateField('category', v as Category | '')}
-            />
+            <div className={`field${fieldErrors.category ? ' has-error' : ''}`}>
+              <CategorySelect
+                value={form.category}
+                onChange={(v) => updateField('category', v as Category | '')}
+              />
+              {fieldErrors.category && (
+                <div className="field-error">{fieldErrors.category}</div>
+              )}
+            </div>
             <div className="field">
               <label>{t.labelPageUrl}</label>
               <input
@@ -176,9 +224,10 @@ export function FeedbackForm({ onSuccess }: Props) {
 
         {/* Turnstile */}
         <TurnstileWidget
-          onVerify={(token) => setTurnstileToken(token)}
-          onExpire={() => setTurnstileToken('')}
-          onError={() => setTurnstileToken('')}
+          onVerify={useCallback((token: string) => setTurnstileToken(token), [])}
+          onExpire={useCallback(() => setTurnstileToken(''), [])}
+          onError={useCallback(() => setTurnstileToken(''), [])}
+          theme={resolvedTheme}
         />
 
         {/* Submit */}
