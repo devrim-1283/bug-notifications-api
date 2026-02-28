@@ -26,6 +26,7 @@ type Config struct {
 	TrustedProxies    []*net.IPNet
 	ImageAPIURL       string
 	ImageAPIKey       string
+	PortalDomain      string
 }
 
 // Load reads configuration from environment variables.
@@ -92,6 +93,8 @@ func Load() (*Config, error) {
 
 	cfg.ImageAPIURL = os.Getenv("IMAGE_API_URL")
 	cfg.ImageAPIKey = os.Getenv("IMAGE_API_KEY")
+
+	cfg.PortalDomain = strings.ToLower(strings.TrimSpace(os.Getenv("PORTAL_DOMAIN")))
 
 	cfg.TLSCertFile = os.Getenv("TLS_CERT_FILE")
 	cfg.TLSKeyFile = os.Getenv("TLS_KEY_FILE")
@@ -167,4 +170,28 @@ func (c *Config) FindSiteByDomain(domain string) *SiteConfig {
 		}
 	}
 	return nil
+}
+
+// IsPortal returns true if the given domain matches the portal domain.
+func (c *Config) IsPortal(domain string) bool {
+	return c.PortalDomain != "" && strings.ToLower(domain) == c.PortalDomain
+}
+
+// ReportableDomains returns all registered domains except the portal domain.
+func (c *Config) ReportableDomains() []string {
+	var domains []string
+	for _, s := range c.Sites {
+		if !c.IsPortal(s.Domain) {
+			domains = append(domains, s.Domain)
+		}
+	}
+	return domains
+}
+
+// PortalSite returns the SiteConfig for the portal domain, or nil.
+func (c *Config) PortalSite() *SiteConfig {
+	if c.PortalDomain == "" {
+		return nil
+	}
+	return c.FindSiteByDomain(c.PortalDomain)
 }

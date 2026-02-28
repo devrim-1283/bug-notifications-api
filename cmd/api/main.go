@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -17,6 +18,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/redis/go-redis/v9"
 )
+
+//go:embed frontend/index.html
+var frontendFS embed.FS
 
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})))
@@ -60,10 +64,21 @@ func main() {
 	// Health check (no auth required)
 	r.Get("/health", handler.HealthCheck)
 
+	// Portal frontend (no auth required)
+	if cfg.PortalDomain != "" {
+		frontendHTML, err := frontendFS.ReadFile("frontend/index.html")
+		if err != nil {
+			slog.Error("failed to read embedded frontend", "error", err)
+			os.Exit(1)
+		}
+		r.Get("/", handler.ServeFrontend(frontendHTML))
+	}
+
 	// Protected routes
 	r.Route("/v1", func(r chi.Router) {
 		r.Use(middleware.BrowserOnly())
 		r.Use(middleware.APIKeyAuth(cfg))
+		r.Get("/sites", handler.ListSites)
 		r.Post("/reports", handler.CreateReport)
 	})
 

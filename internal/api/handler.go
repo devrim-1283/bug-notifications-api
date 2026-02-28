@@ -106,10 +106,30 @@ func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Override site_id from the authenticated context (don't trust client)
+	// Determine site_id: portal mode lets client choose; normal mode overrides from auth context
 	siteID := middleware.GetSiteID(r.Context())
 	if siteID != "" {
-		req.SiteID = siteID
+		if h.cfg.IsPortal(siteID) {
+			// Portal mode: validate that client-supplied site_id is a registered reportable domain
+			if req.SiteID == "" {
+				writeJSON(w, http.StatusBadRequest, model.ErrorResponse{
+					Error: "site_id is required",
+					Code:  "MISSING_SITE_ID",
+				})
+				return
+			}
+			target := h.cfg.FindSiteByDomain(req.SiteID)
+			if target == nil || h.cfg.IsPortal(target.Domain) {
+				writeJSON(w, http.StatusBadRequest, model.ErrorResponse{
+					Error: "invalid site_id",
+					Code:  "INVALID_SITE_ID",
+				})
+				return
+			}
+		} else {
+			// Normal mode: override site_id from authenticated context (don't trust client)
+			req.SiteID = siteID
+		}
 	}
 
 	// Validate
@@ -181,6 +201,37 @@ func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 		EventID: eventID,
 		Queued:  true,
 	})
+}
+
+// ListSites handles GET /v1/sites — returns reportable domains (portal excluded).
+func (h *Handler) ListSites(w http.ResponseWriter, r *http.Request) {
+	domains := h.cfg.ReportableDomains()
+	if domains == nil {
+		domains = []string{}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"sites": domains,
+	})
+}
+
+// ServeFrontend serves the portal HTML page with the portal API key injected.
+func (h *Handler) ServeFrontend(frontendHTML []byte) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		portalSite := h.cfg.PortalSite()
+		apiKey := ""
+		if portalSite != nil {
+			apiKey = portalSite.APIKey
+		}
+
+		html := strings.Replace(string(frontendHTML), "__PORTAL_API_KEY__", apiKey, 1)
+		html = strings.Replace(html, "__PORTAL_DOMAIN__", h.cfg.PortalDomain, 1)
+
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(html))
+	}
 }
 
 // HealthCheck handles GET /health
