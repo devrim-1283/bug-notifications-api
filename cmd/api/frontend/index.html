@@ -2,529 +2,361 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>DevrimSoft Feedback</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f5f5f7;--surface:#fff;--surface2:#f0f0f2;--border:#e0e0e4;
-  --text:#1d1d1f;--muted:#6e6e73;--dim:#aeaeb2;
-  --accent:#0071e3;--accent-dim:#0060c0;--accent-glow:rgba(0,113,227,.06);
-  --error:#ff3b30;--error-bg:rgba(255,59,48,.06);
-  --radius:8px;--font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+  --bg:#f4f5f7;--card:#fff;--border:#e2e4e9;--text:#1a1a1a;--muted:#6b7280;
+  --accent:#2563eb;--accent-hover:#1d4ed8;--accent-light:#eff4ff;
+  --success:#16a34a;--success-light:#f0fdf4;
+  --error:#dc2626;--error-light:#fef2f2;
+  --radius:10px;--font:'Inter',system-ui,-apple-system,sans-serif;
 }
-html,body{height:100%;overflow:hidden}
-body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.4;display:flex;align-items:center;justify-content:center}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;min-height:100dvh}
 
-/* Shell */
-.shell{position:relative;z-index:1;width:min(1060px,96vw);height:min(640px,92vh);display:grid;grid-template-columns:280px 1fr;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,.06)}
+/* Layout */
+.page{max-width:600px;margin:0 auto;padding:20px 16px 40px}
 
-/* Left Panel */
-.panel-left{background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:28px 24px 20px}
-.brand{display:flex;align-items:center;gap:10px;margin-bottom:28px}
-.brand-icon{width:34px;height:34px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;flex-shrink:0}
-.brand h1{font-size:.9375rem;font-weight:600;letter-spacing:-.01em;color:var(--text)}
-.brand small{display:block;font-size:.6875rem;color:var(--muted);font-weight:400;margin-top:1px}
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:36px;height:36px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.875rem;flex-shrink:0}
+.brand-text h1{font-size:.9375rem;font-weight:600;line-height:1.2}
+.brand-text small{font-size:.6875rem;color:var(--muted);font-weight:400}
 
-.type-nav{display:flex;flex-direction:column;gap:4px;margin-bottom:auto}
-.type-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border:none;border-radius:var(--radius);background:transparent;color:var(--muted);font:500 .8125rem/1.3 var(--font);cursor:pointer;transition:all .15s;text-align:left;width:100%}
-.type-btn i{width:18px;text-align:center;font-size:.8125rem;transition:color .15s}
-.type-btn:hover{background:var(--surface);color:var(--text)}
-.type-btn.active{background:var(--accent-glow);color:var(--accent)}
-.type-btn.active i{color:var(--accent)}
+/* Language select */
+.lang-select{position:relative}
+.lang-btn{display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;font:400 .75rem/1 var(--font);color:var(--text);transition:border-color .15s}
+.lang-btn:hover{border-color:var(--accent)}
+.lang-btn .flag{font-size:1.125rem;line-height:1}
+.lang-btn i{font-size:.5rem;color:var(--muted);margin-left:2px}
+.lang-menu{position:absolute;top:100%;right:0;margin-top:4px;background:var(--card);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.1);display:none;flex-direction:column;overflow:hidden;z-index:100;min-width:150px}
+.lang-menu.open{display:flex}
+.lang-item{display:flex;align-items:center;gap:10px;padding:8px 14px;border:none;background:none;color:var(--text);font:400 .8125rem/1.3 var(--font);cursor:pointer;transition:background .1s;text-align:left;width:100%}
+.lang-item:hover{background:var(--bg)}
+.lang-item.active{background:var(--accent-light);color:var(--accent);font-weight:500}
+.lang-item .flag{font-size:1rem;line-height:1}
 
-.panel-bottom{display:flex;flex-direction:column;gap:10px;position:relative}
+/* Type toggle */
+.type-toggle{display:flex;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px}
+.type-toggle button{flex:1;padding:11px 16px;border:none;background:none;cursor:pointer;font:500 .8125rem/1.3 var(--font);color:var(--muted);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.type-toggle button:first-child{border-right:1px solid var(--border)}
+.type-toggle button.active{background:var(--accent);color:#fff}
+.type-toggle button i{font-size:.8125rem}
 
-/* Language Dropdown */
-.lang-trigger{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--muted);font:400 .75rem/1.3 var(--font);cursor:pointer;transition:all .15s;width:100%}
-.lang-trigger:hover{border-color:var(--accent);color:var(--text)}
-.lang-trigger .flag{font-size:1rem;line-height:1}
-.lang-trigger span{flex:1;text-align:left}
-.lang-trigger i{font-size:.625rem;color:var(--dim);transition:transform .2s}
-.lang-trigger.open i{transform:rotate(180deg)}
+/* Card */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card-title{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.card-title i{font-size:.6875rem}
 
-.lang-dropdown{position:absolute;bottom:100%;left:0;right:0;margin-bottom:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 4px 16px rgba(0,0,0,.1);display:none;flex-direction:column;overflow:hidden;z-index:50}
-.lang-dropdown.open{display:flex}
-.lang-option{display:flex;align-items:center;gap:10px;padding:9px 14px;border:none;background:transparent;color:var(--text);font:400 .8125rem/1.3 var(--font);cursor:pointer;transition:all .1s;width:100%;text-align:left}
-.lang-option:hover{background:var(--surface2)}
-.lang-option.active{background:var(--accent-glow);color:var(--accent)}
-.lang-option .flag{font-size:1.125rem;line-height:1}
-.lang-option .lang-name{flex:1}
-.lang-option .check{color:var(--accent);font-size:.7rem;opacity:0}
-.lang-option.active .check{opacity:1}
-
-/* Right Panel */
-.panel-right{display:flex;flex-direction:column;overflow:hidden}
-.panel-header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.panel-header h2{font-size:.9375rem;font-weight:600;letter-spacing:-.01em}
-.panel-header p{font-size:.6875rem;color:var(--muted);margin-top:1px}
-.step-pills{display:flex;gap:4px}
-.step-pill{width:28px;height:3px;border-radius:2px;background:var(--border);transition:background .3s}
-.step-pill.active{background:var(--accent)}
-.step-pill.done{background:var(--accent-dim);opacity:.4}
-
-.panel-body{flex:1;overflow-y:auto;padding:20px 28px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
-.panel-body::-webkit-scrollbar{width:4px}
-.panel-body::-webkit-scrollbar-track{background:transparent}
-.panel-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-
-.panel-footer{padding:14px 28px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0}
-
-/* Form */
-.step{display:none;animation:fadeUp .25s ease}
-.step.active{display:block}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
+/* Fields */
 .field{margin-bottom:14px}
 .field:last-child{margin-bottom:0}
-.field-label{display:flex;align-items:center;gap:6px;font-size:.6875rem;font-weight:500;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
-.field-label .req{color:var(--accent);font-size:.5rem}
-.field-note{font-size:.6875rem;color:var(--dim);margin-top:3px}
-.field-note.auto{color:var(--accent)}
+label{display:block;font-size:.8125rem;font-weight:500;margin-bottom:4px;color:var(--text)}
+label .req{color:var(--error);margin-left:2px}
+.field-note{font-size:.6875rem;color:var(--muted);margin-top:3px}
+.field-note.auto{color:var(--success);font-weight:500}
 
 input,select,textarea{
-  width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);
-  font:400 .8125rem/1.4 var(--font);background:var(--surface);color:var(--text);
+  width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+  font:400 .8125rem/1.5 var(--font);background:var(--card);color:var(--text);
   outline:none;transition:border-color .15s
 }
-input::placeholder,textarea::placeholder{color:var(--dim)}
-input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow)}
-textarea{resize:none;height:80px}
-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236e6e73' d='M5 7L1 3h8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;cursor:pointer}
+input::placeholder,textarea::placeholder{color:#c0c4cc}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+textarea{resize:vertical;min-height:90px}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236b7280' d='M5 7L1 3h8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px;cursor:pointer}
 select:disabled{opacity:.5;cursor:not-allowed}
 
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* Collapsible */
+.collapse-trigger{display:flex;align-items:center;gap:6px;font:500 .8125rem/1.3 var(--font);color:var(--accent);cursor:pointer;margin-bottom:12px;border:none;background:none;padding:0}
+.collapse-trigger i{font-size:.625rem;transition:transform .2s}
+.collapse-trigger.open i{transform:rotate(90deg)}
+.collapse-body{display:none}
+.collapse-body.open{display:block}
 
 /* File upload */
-.drop-zone{border:1px dashed var(--border);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
-.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--accent-glow)}
+.drop-zone{border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--accent-light)}
 .drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
-.drop-zone i{font-size:1.25rem;color:var(--dim);margin-bottom:4px}
-.drop-zone p{font-size:.6875rem;color:var(--dim)}
-.preview-grid{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-.preview-item{position:relative;width:52px;height:52px;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.drop-zone i{font-size:1.25rem;color:var(--muted);display:block;margin-bottom:4px}
+.drop-zone p{font-size:.75rem;color:var(--muted)}
+.preview-grid{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.preview-item{position:relative;width:56px;height:56px;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
 .preview-item img{width:100%;height:100%;object-fit:cover}
-.preview-item button{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;border:none;background:rgba(0,0,0,.5);color:#fff;font-size:.5625rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.preview-item button{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;font-size:.5625rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
 /* Turnstile */
-.turnstile-wrap{display:flex;justify-content:center;margin-bottom:8px}
+.turnstile-wrap{display:flex;justify-content:center;margin-bottom:16px}
 
-/* Buttons */
-.btn{padding:9px 20px;border:none;border-radius:var(--radius);font:500 .8125rem/1.3 var(--font);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
-.btn-primary{background:var(--accent);color:#fff;flex:1;justify-content:center}
-.btn-primary:hover{background:var(--accent-dim)}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
-.btn-ghost:hover{border-color:var(--accent);color:var(--text)}
+/* Submit */
+.btn-submit{width:100%;padding:12px;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font:600 .875rem/1.3 var(--font);cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-submit:hover{background:var(--accent-hover)}
+.btn-submit:disabled{opacity:.45;cursor:not-allowed}
 
-.msg{padding:10px 14px;border-radius:var(--radius);font-size:.75rem;margin-top:8px;display:none}
-.msg.error{display:block;background:var(--error-bg);color:var(--error);border:1px solid rgba(255,59,48,.12)}
+.msg{padding:12px 14px;border-radius:8px;font-size:.8125rem;margin-top:12px;display:none}
+.msg.error{display:block;background:var(--error-light);color:var(--error);border:1px solid #fecaca}
 
-.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .5s linear infinite}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .5s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Success */
-.success-screen{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:absolute;inset:0;background:var(--surface);z-index:10;padding:32px}
-.success-screen.visible{display:flex}
-.success-icon{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#34c759,#30d158);display:flex;align-items:center;justify-content:center;margin-bottom:20px;animation:pop .4s cubic-bezier(.175,.885,.32,1.275)}
-@keyframes pop{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
-.success-icon i{font-size:1.5rem;color:#fff}
-.success-screen h2{font-size:1.125rem;font-weight:600;margin-bottom:6px}
-.success-screen p{color:var(--muted);font-size:.8125rem;margin-bottom:20px;max-width:320px}
+/* Success overlay */
+.success-overlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;align-items:center;justify-content:center}
+.success-overlay.visible{display:flex}
+.success-content{text-align:center;padding:24px}
+.success-check{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;animation:popIn .4s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes popIn{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
+.success-check i{font-size:1.75rem;color:#fff}
+.success-content h2{font-size:1.25rem;font-weight:600;margin-bottom:6px}
+.success-content p{color:var(--muted);font-size:.875rem;margin-bottom:24px;max-width:340px;margin-left:auto;margin-right:auto}
+.btn-new{display:inline-flex;align-items:center;gap:8px;padding:10px 28px;border:1px solid var(--accent);border-radius:var(--radius);background:none;color:var(--accent);font:500 .875rem/1.3 var(--font);cursor:pointer;transition:all .15s}
+.btn-new:hover{background:var(--accent);color:#fff}
 
-/* Mobile */
-@media(max-width:700px){
-  .shell{grid-template-columns:1fr;height:100vh;height:100dvh;width:100vw;border-radius:0;border:none;box-shadow:none}
-  .panel-left{display:none}
-  .mobile-bar{display:flex !important}
-  .panel-header h2{font-size:.8125rem}
-  .panel-body{padding:16px}
-  .panel-header{padding:14px 16px 12px}
-  .panel-footer{padding:12px 16px}
+/* Mobile adjustments */
+@media(max-width:480px){
+  .page{padding:12px 12px 32px}
   .row{grid-template-columns:1fr}
+  .card{padding:16px}
+  .type-toggle button{padding:10px 12px;font-size:.75rem}
 }
-.mobile-bar{display:none;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0}
-.mobile-bar .brand{margin:0}
-.mobile-bar .mob-actions{display:flex;gap:8px;align-items:center}
-.mob-type-btn{background:transparent;border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--muted);font:500 .6875rem/1 var(--font);cursor:pointer;transition:all .15s}
-.mob-type-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
-.mob-lang-btn{background:var(--surface);border:1px solid var(--border);border-radius:6px;width:32px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.875rem;line-height:1;transition:all .15s;position:relative}
-.mob-lang-btn:hover{border-color:var(--accent)}
-
-/* Mobile lang dropdown */
-.mob-lang-dropdown{position:absolute;top:100%;right:0;margin-top:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 4px 16px rgba(0,0,0,.1);display:none;flex-direction:column;overflow:hidden;z-index:50;min-width:160px}
-.mob-lang-dropdown.open{display:flex}
 </style>
 </head>
 <body>
 
-<div class="shell">
-  <!-- Mobile top bar -->
-  <div class="mobile-bar">
-    <div class="brand">
-      <div class="brand-icon"><i class="fa-solid fa-bug"></i></div>
-      <div><h1>DevrimSoft</h1></div>
-    </div>
-    <div class="mob-actions">
-      <button class="mob-type-btn active" data-type="bug" id="mobBugBtn"><i class="fa-solid fa-bug"></i></button>
-      <button class="mob-type-btn" data-type="request" id="mobReqBtn"><i class="fa-solid fa-lightbulb"></i></button>
-      <div style="position:relative">
-        <button class="mob-lang-btn" id="mobLangBtn">&#127481;&#127479;</button>
-        <div class="mob-lang-dropdown" id="mobLangDropdown">
-          <button class="lang-option active" data-lang="tr"><span class="flag">&#127481;&#127479;</span><span class="lang-name">Turkce</span><i class="fa-solid fa-check check"></i></button>
-          <button class="lang-option" data-lang="en"><span class="flag">&#127468;&#127463;</span><span class="lang-name">English</span><i class="fa-solid fa-check check"></i></button>
-          <button class="lang-option" data-lang="de"><span class="flag">&#127465;&#127466;</span><span class="lang-name">Deutsch</span><i class="fa-solid fa-check check"></i></button>
-          <button class="lang-option" data-lang="ru"><span class="flag">&#127479;&#127482;</span><span class="lang-name">Russky</span><i class="fa-solid fa-check check"></i></button>
-          <button class="lang-option" data-lang="uk"><span class="flag">&#127482;&#127462;</span><span class="lang-name">Ukrainska</span><i class="fa-solid fa-check check"></i></button>
-        </div>
-      </div>
-    </div>
+<!-- Success Screen -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-content">
+    <div class="success-check"><i class="fa-solid fa-check"></i></div>
+    <h2 id="successTitle">Tesekkurler!</h2>
+    <p id="successText">Geri bildiriminiz basariyla gonderildi. En kisa surede degerlendirilecektir.</p>
+    <button class="btn-new" id="newReportBtn" onclick="resetForm()"><i class="fa-solid fa-plus"></i> <span id="newReportLabel">Yeni Bildirim</span></button>
   </div>
+</div>
 
-  <!-- Left Panel (desktop) -->
-  <div class="panel-left">
+<div class="page">
+  <!-- Header -->
+  <div class="header">
     <div class="brand">
-      <div class="brand-icon"><i class="fa-solid fa-bug"></i></div>
-      <div>
+      <div class="brand-icon"><i class="fa-solid fa-comment-dots"></i></div>
+      <div class="brand-text">
         <h1>DevrimSoft</h1>
-        <small id="pageSubtitle">Hata bildirin veya onerilerinizi paylasin</small>
+        <small id="pageSubtitle">Geri bildiriminizi paylasin</small>
       </div>
     </div>
-
-    <div class="type-nav">
-      <button class="type-btn active" data-type="bug" onclick="setReportType('bug')">
-        <i class="fa-solid fa-bug"></i><span id="typeBugLabel">Hata Bildirimi</span>
+    <div class="lang-select">
+      <button class="lang-btn" id="langBtn" onclick="toggleLang()">
+        <span class="flag" id="langFlag">&#127481;&#127479;</span>
+        <span id="langLabel">TR</span>
+        <i class="fa-solid fa-chevron-down"></i>
       </button>
-      <button class="type-btn" data-type="request" onclick="setReportType('request')">
-        <i class="fa-solid fa-lightbulb"></i><span id="typeRequestLabel">Oneriler</span>
-      </button>
-    </div>
-
-    <div class="panel-bottom">
-      <div class="lang-dropdown" id="langDropdown">
-        <button class="lang-option active" data-lang="tr"><span class="flag">&#127481;&#127479;</span><span class="lang-name">Turkce</span><i class="fa-solid fa-check check"></i></button>
-        <button class="lang-option" data-lang="en"><span class="flag">&#127468;&#127463;</span><span class="lang-name">English</span><i class="fa-solid fa-check check"></i></button>
-        <button class="lang-option" data-lang="de"><span class="flag">&#127465;&#127466;</span><span class="lang-name">Deutsch</span><i class="fa-solid fa-check check"></i></button>
-        <button class="lang-option" data-lang="ru"><span class="flag">&#127479;&#127482;</span><span class="lang-name">Russky</span><i class="fa-solid fa-check check"></i></button>
-        <button class="lang-option" data-lang="uk"><span class="flag">&#127482;&#127462;</span><span class="lang-name">Ukrainska</span><i class="fa-solid fa-check check"></i></button>
+      <div class="lang-menu" id="langMenu">
+        <button class="lang-item active" data-lang="tr"><span class="flag">&#127481;&#127479;</span> Turkce</button>
+        <button class="lang-item" data-lang="en"><span class="flag">&#127468;&#127463;</span> English</button>
+        <button class="lang-item" data-lang="de"><span class="flag">&#127465;&#127466;</span> Deutsch</button>
+        <button class="lang-item" data-lang="ru"><span class="flag">&#127479;&#127482;</span> Russky</button>
+        <button class="lang-item" data-lang="uk"><span class="flag">&#127482;&#127462;</span> Ukrainska</button>
       </div>
-      <button class="lang-trigger" id="langTrigger">
-        <span class="flag" id="currentFlag">&#127481;&#127479;</span>
-        <span id="currentLangName">Turkce</span>
-        <i class="fa-solid fa-chevron-up"></i>
-      </button>
     </div>
   </div>
 
-  <!-- Right Panel -->
-  <div class="panel-right" style="position:relative">
-    <!-- Success -->
-    <div class="success-screen" id="successScreen">
-      <div class="success-icon"><i class="fa-solid fa-check"></i></div>
-      <h2 id="successTitle">Tesekkurler!</h2>
-      <p id="successText">Geri bildiriminiz basariyla gonderildi. En kisa surede degerlendirilecektir.</p>
-      <button class="btn btn-primary" style="flex:none;padding:10px 32px" id="newReportBtn" onclick="resetForm()"><i class="fa-solid fa-plus"></i> <span>Yeni Bildirim</span></button>
+  <!-- Report Type -->
+  <div class="type-toggle" id="typeToggle">
+    <button class="active" data-type="bug" onclick="setReportType('bug')"><i class="fa-solid fa-bug"></i> <span id="typeBugLabel">Hata Bildirimi</span></button>
+    <button data-type="request" onclick="setReportType('request')"><i class="fa-solid fa-lightbulb"></i> <span id="typeRequestLabel">Oneriler</span></button>
+  </div>
+
+  <form id="feedbackForm" novalidate>
+    <!-- Main Fields -->
+    <div class="card">
+      <div class="field">
+        <label for="siteSelect" id="labelSite">Site <span class="req">*</span></label>
+        <select id="siteSelect" required></select>
+        <div class="field-note" id="siteNote"></div>
+      </div>
+      <div class="field">
+        <label for="titleInput" id="labelTitle">Baslik <span class="req">*</span></label>
+        <input type="text" id="titleInput" maxlength="200" required>
+      </div>
+      <div class="field">
+        <label for="categorySelect" id="labelCategory">Kategori <span class="req">*</span></label>
+        <select id="categorySelect" required>
+          <option value="" id="optCatPlaceholder">Secin...</option>
+          <option value="design" id="optDesign">Tasarim</option>
+          <option value="functionality" id="optFunctionality">Islevsellik</option>
+          <option value="performance" id="optPerformance">Performans</option>
+          <option value="content" id="optContent">Icerik</option>
+          <option value="mobile" id="optMobile">Mobil</option>
+          <option value="security" id="optSecurity">Guvenlik</option>
+          <option value="other" id="optOther">Diger</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="descInput" id="labelDesc">Aciklama <span class="req">*</span></label>
+        <textarea id="descInput" maxlength="5000" required></textarea>
+      </div>
+      <div class="field">
+        <label for="pageUrlInput" id="labelPageUrl">Sayfa URL'i</label>
+        <input type="url" id="pageUrlInput" placeholder="https://...">
+      </div>
     </div>
 
-    <div class="panel-header">
-      <div>
-        <h2 id="pageTitle">Geri Bildirim</h2>
-        <p id="stepLabel"></p>
-      </div>
-      <div class="step-pills">
-        <div class="step-pill active" data-step="0"></div>
-        <div class="step-pill" data-step="1"></div>
-        <div class="step-pill" data-step="2"></div>
-      </div>
-    </div>
-
-    <form id="bugForm" novalidate>
-      <input type="hidden" id="reportTypeInput" value="bug">
-
-      <div class="panel-body">
-        <!-- Step 0: Main info -->
-        <div class="step active" data-step="0">
+    <!-- Contact (Collapsible) -->
+    <div class="card">
+      <button type="button" class="collapse-trigger" id="contactTrigger" onclick="toggleCollapse()">
+        <i class="fa-solid fa-chevron-right"></i>
+        <span id="labelContact">Iletisim Bilgileri (Opsiyonel)</span>
+      </button>
+      <div class="collapse-body" id="contactBody">
+        <div class="row">
           <div class="field">
-            <div class="field-label"><i class="fa-solid fa-globe"></i> <span id="labelSite">Site</span> <span class="req"><i class="fa-solid fa-circle"></i></span></div>
-            <select id="siteSelect" required></select>
-            <div class="field-note" id="siteNote"></div>
+            <label for="firstNameInput" id="labelFirstName">Ad</label>
+            <input type="text" id="firstNameInput" maxlength="100">
           </div>
           <div class="field">
-            <div class="field-label"><i class="fa-solid fa-heading"></i> <span id="labelTitle">Baslik</span> <span class="req"><i class="fa-solid fa-circle"></i></span></div>
-            <input type="text" id="titleInput" maxlength="200" required>
+            <label for="lastNameInput" id="labelLastName">Soyad</label>
+            <input type="text" id="lastNameInput" maxlength="100">
           </div>
+        </div>
+        <div class="row" style="margin-top:12px">
           <div class="field">
-            <div class="field-label"><i class="fa-solid fa-tag"></i> <span id="labelCategory">Kategori</span> <span class="req"><i class="fa-solid fa-circle"></i></span></div>
-            <select id="categorySelect" required>
-              <option value="" id="optCatPlaceholder">Secin...</option>
-              <option value="design" id="optDesign">Tasarim</option>
-              <option value="functionality" id="optFunctionality">Islevsellik</option>
-              <option value="performance" id="optPerformance">Performans</option>
-              <option value="content" id="optContent">Icerik</option>
-              <option value="mobile" id="optMobile">Mobil</option>
-              <option value="security" id="optSecurity">Guvenlik</option>
-              <option value="other" id="optOther">Diger</option>
+            <label for="contactTypeSelect" id="labelContactType">Iletisim Turu</label>
+            <select id="contactTypeSelect">
+              <option value="">-</option>
+              <option value="email">E-posta</option>
+              <option value="phone" id="optPhone">Telefon</option>
+              <option value="telegram">Telegram</option>
+              <option value="instagram">Instagram</option>
             </select>
           </div>
           <div class="field">
-            <div class="field-label"><i class="fa-solid fa-align-left"></i> <span id="labelDesc">Aciklama</span> <span class="req"><i class="fa-solid fa-circle"></i></span></div>
-            <textarea id="descInput" maxlength="5000" required></textarea>
+            <label for="contactValueInput" id="labelContactValue">Iletisim Degeri</label>
+            <input type="text" id="contactValueInput" maxlength="200">
           </div>
-          <div class="field">
-            <div class="field-label"><i class="fa-solid fa-link"></i> <span id="labelPageUrl">Sayfa URL'i</span></div>
-            <input type="url" id="pageUrlInput" placeholder="https://...">
-          </div>
-        </div>
-
-        <!-- Step 1: Contact + Images -->
-        <div class="step" data-step="1">
-          <div class="field">
-            <div class="field-label"><i class="fa-solid fa-user"></i> <span id="labelContact">Iletisim Bilgileri (Opsiyonel)</span></div>
-          </div>
-          <div class="row">
-            <div class="field">
-              <div class="field-label"><span id="labelFirstName">Ad</span></div>
-              <input type="text" id="firstNameInput" maxlength="100">
-            </div>
-            <div class="field">
-              <div class="field-label"><span id="labelLastName">Soyad</span></div>
-              <input type="text" id="lastNameInput" maxlength="100">
-            </div>
-          </div>
-          <div class="row">
-            <div class="field">
-              <div class="field-label"><span id="labelContactType">Iletisim Turu</span></div>
-              <select id="contactTypeSelect">
-                <option value="">-</option>
-                <option value="email">E-posta</option>
-                <option value="phone" id="optPhone">Telefon</option>
-                <option value="telegram">Telegram</option>
-                <option value="instagram">Instagram</option>
-              </select>
-            </div>
-            <div class="field">
-              <div class="field-label"><span id="labelContactValue">Iletisim Degeri</span></div>
-              <input type="text" id="contactValueInput" maxlength="200">
-            </div>
-          </div>
-          <div class="field" style="margin-top:8px">
-            <div class="field-label"><i class="fa-solid fa-image"></i> <span id="labelImages">Gorseller (Maks. 5)</span></div>
-            <div class="drop-zone" id="dropZone">
-              <input type="file" id="fileInput" multiple accept="image/png,image/jpeg,image/webp,image/gif">
-              <i class="fa-solid fa-cloud-arrow-up"></i>
-              <p id="dropText">Dosyalari surukleyin veya tiklayin</p>
-            </div>
-            <div class="preview-grid" id="previewGrid"></div>
-          </div>
-        </div>
-
-        <!-- Step 2: Review + Submit -->
-        <div class="step" data-step="2">
-          <div class="turnstile-wrap" id="turnstileWrap"></div>
-          <div class="msg" id="resultMsg"></div>
         </div>
       </div>
+    </div>
 
-      <div class="panel-footer">
-        <button type="button" class="btn btn-ghost" id="btnPrev" onclick="prevStep()" style="display:none"><i class="fa-solid fa-arrow-left"></i></button>
-        <button type="button" class="btn btn-primary" id="btnNext" onclick="nextStep()"><span id="nextLabel">Devam</span> <i class="fa-solid fa-arrow-right"></i></button>
-        <button type="submit" class="btn btn-primary" id="submitBtn" style="display:none" disabled><i class="fa-solid fa-paper-plane"></i> <span id="submitLabel">Gonder</span></button>
+    <!-- Images -->
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-image"></i> <span id="labelImages">Gorseller (Maks. 5)</span></div>
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" multiple accept="image/png,image/jpeg,image/webp,image/gif">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <p id="dropText">Dosyalari surukleyin veya tiklayin</p>
       </div>
-    </form>
-  </div>
+      <div class="preview-grid" id="previewGrid"></div>
+    </div>
+
+    <!-- Turnstile + Submit -->
+    <div class="turnstile-wrap" id="turnstileWrap"></div>
+    <button type="submit" class="btn-submit" id="submitBtn" disabled>
+      <i class="fa-solid fa-paper-plane"></i>
+      <span id="submitLabel">Gonder</span>
+    </button>
+    <div class="msg" id="resultMsg"></div>
+  </form>
 </div>
 
 <script>
 const API_KEY='__PORTAL_API_KEY__';
-const PORTAL_DOMAIN='__PORTAL_DOMAIN__';
 const TURNSTILE_SITE_KEY='__TURNSTILE_SITE_KEY__';
 const INJECTED_SITES=__SITES_JSON__;
 
 const FLAGS={tr:'\u{1F1F9}\u{1F1F7}',en:'\u{1F1EC}\u{1F1E7}',de:'\u{1F1E9}\u{1F1EA}',ru:'\u{1F1F7}\u{1F1FA}',uk:'\u{1F1FA}\u{1F1E6}'};
-const LANG_NAMES={tr:'Turkce',en:'English',de:'Deutsch',ru:'Russky',uk:'Ukrainska'};
 
 const T={
-  tr:{pageTitle:'Geri Bildirim',pageSubtitle:'Hata bildirin veya onerilerinizi paylasin',labelSite:'Site',labelTitle:'Baslik',labelCategory:'Kategori',labelDesc:'Aciklama',labelPageUrl:'Sayfa URL\'i',labelContact:'Iletisim Bilgileri (Opsiyonel)',labelFirstName:'Ad',labelLastName:'Soyad',labelContactType:'Iletisim Turu',labelContactValue:'Iletisim Degeri',labelImages:'Gorseller (Maks. 5)',dropText:'Dosyalari surukleyin veya tiklayin',submitBtn:'Gonder',sending:'Gonderiliyor...',errorGeneric:'Bir hata olustu. Lutfen tekrar deneyin.',autoDetected:'Otomatik algilandi',selectPlaceholder:'Secin...',catDesign:'Tasarim',catFunctionality:'Islevsellik',catPerformance:'Performans',catContent:'Icerik',catMobile:'Mobil',catSecurity:'Guvenlik',catOther:'Diger',optPhone:'Telefon',titlePlaceholder:'Kisa bir baslik yazin',descPlaceholder:'Detayli olarak aciklayin',maxImages:'En fazla 5 gorsel yuklenebilir',siteSelectPlaceholder:'Site secin...',typeBug:'Hata Bildirimi',typeRequest:'Oneriler',successTitle:'Tesekkurler!',successText:'Geri bildiriminiz basariyla gonderildi. En kisa surede degerlendirilecektir.',newReport:'Yeni Bildirim',next:'Devam',stepDetails:'Detaylar',stepContact:'Iletisim & Gorseller',stepSubmit:'Gonder'},
-  en:{pageTitle:'Feedback',pageSubtitle:'Report bugs or share your suggestions',labelSite:'Site',labelTitle:'Title',labelCategory:'Category',labelDesc:'Description',labelPageUrl:'Page URL',labelContact:'Contact Info (Optional)',labelFirstName:'First Name',labelLastName:'Last Name',labelContactType:'Contact Type',labelContactValue:'Contact Value',labelImages:'Screenshots (Max 5)',dropText:'Drag files here or click to browse',submitBtn:'Submit',sending:'Sending...',errorGeneric:'An error occurred. Please try again.',autoDetected:'Auto-detected',selectPlaceholder:'Select...',catDesign:'Design',catFunctionality:'Functionality',catPerformance:'Performance',catContent:'Content',catMobile:'Mobile',catSecurity:'Security',catOther:'Other',optPhone:'Phone',titlePlaceholder:'Write a short title',descPlaceholder:'Describe in detail',maxImages:'Maximum 5 images allowed',siteSelectPlaceholder:'Select a site...',typeBug:'Bug Report',typeRequest:'Suggestions',successTitle:'Thank you!',successText:'Your feedback has been submitted successfully. It will be reviewed shortly.',newReport:'New Report',next:'Next',stepDetails:'Details',stepContact:'Contact & Images',stepSubmit:'Submit'},
-  de:{pageTitle:'Feedback',pageSubtitle:'Melden Sie Fehler oder teilen Sie Vorschlage',labelSite:'Webseite',labelTitle:'Titel',labelCategory:'Kategorie',labelDesc:'Beschreibung',labelPageUrl:'Seiten-URL',labelContact:'Kontaktdaten (Optional)',labelFirstName:'Vorname',labelLastName:'Nachname',labelContactType:'Kontaktart',labelContactValue:'Kontaktwert',labelImages:'Bilder (Max. 5)',dropText:'Dateien hierher ziehen oder klicken',submitBtn:'Absenden',sending:'Wird gesendet...',errorGeneric:'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',autoDetected:'Automatisch erkannt',selectPlaceholder:'Auswahlen...',catDesign:'Design',catFunctionality:'Funktionalitat',catPerformance:'Leistung',catContent:'Inhalt',catMobile:'Mobil',catSecurity:'Sicherheit',catOther:'Sonstiges',optPhone:'Telefon',titlePlaceholder:'Kurzen Titel eingeben',descPlaceholder:'Beschreiben Sie es im Detail',maxImages:'Maximal 5 Bilder erlaubt',siteSelectPlaceholder:'Webseite auswahlen...',typeBug:'Fehlerbericht',typeRequest:'Vorschlage',successTitle:'Vielen Dank!',successText:'Ihr Feedback wurde erfolgreich gesendet. Es wird in Kurze bearbeitet.',newReport:'Neuer Bericht',next:'Weiter',stepDetails:'Details',stepContact:'Kontakt & Bilder',stepSubmit:'Absenden'},
-  ru:{pageTitle:'Obratnaya svyaz',pageSubtitle:'Soobshchite ob oshibkah ili podelites predlozheniyami',labelSite:'Sayt',labelTitle:'Zagolovok',labelCategory:'Kategoriya',labelDesc:'Opisaniye',labelPageUrl:'URL stranitsy',labelContact:'Kontaktnaya informatsiya (Neobyzatelno)',labelFirstName:'Imya',labelLastName:'Familiya',labelContactType:'Tip kontakta',labelContactValue:'Kontaktnoye znacheniye',labelImages:'Izobrazheniya (Maks. 5)',dropText:'Peretashchite fayly syuda ili nazmite',submitBtn:'Otpravit',sending:'Otpravka...',errorGeneric:'Proizoshla oshibka. Poprobuyete snova.',autoDetected:'Opredeleno avtomaticheski',selectPlaceholder:'Vybrat...',catDesign:'Dizayn',catFunctionality:'Funktsionalnost',catPerformance:'Proizvoditelnost',catContent:'Kontent',catMobile:'Mobilniy',catSecurity:'Bezopasnost',catOther:'Drugoye',optPhone:'Telefon',titlePlaceholder:'Napishite korotkiy zagolovok',descPlaceholder:'Podrobno opishite',maxImages:'Maksimum 5 izobrazheniy',siteSelectPlaceholder:'Vybrat sayt...',typeBug:'Otchet ob oshibke',typeRequest:'Predlozheniya',successTitle:'Spasibo!',successText:'Vash otzyv uspeshno otpravlen. On budet rassmotren v blizhaysheye vremya.',newReport:'Novyy otchet',next:'Dalee',stepDetails:'Detali',stepContact:'Kontakt i izobrazheniya',stepSubmit:'Otpravit'},
-  uk:{pageTitle:"Zvorotniy zv'yazok",pageSubtitle:'Povidomte pro pomylky abo podilitsya propozytsiyamy',labelSite:'Sayt',labelTitle:'Zagolovok',labelCategory:'Kategoriya',labelDesc:'Opys',labelPageUrl:'URL storinky',labelContact:"Kontaktna informatsiya (Neobov'yazkovo)",labelFirstName:"Im'ya",labelLastName:'Prizvyshche',labelContactType:'Typ kontaktu',labelContactValue:'Kontaktne znachennya',labelImages:'Zobrazhennya (Maks. 5)',dropText:'Peretagnit fayly syudy abo natysnit',submitBtn:'Vidpravyty',sending:'Vidpravka...',errorGeneric:'Stalasya pomylka. Bud laska, sprobujte shche raz.',autoDetected:'Vyznacheno avtomatychno',selectPlaceholder:'Obraty...',catDesign:'Dyzayn',catFunctionality:'Funktsionalnist',catPerformance:'Produktyvnist',catContent:'Kontent',catMobile:'Mobilnyy',catSecurity:'Bezpeka',catOther:'Inshe',optPhone:'Telefon',titlePlaceholder:'Napyshit korotkyy zagolovok',descPlaceholder:'Detalno opishit',maxImages:'Maksymum 5 zobrazhen',siteSelectPlaceholder:'Obraty sayt...',typeBug:'Zvit pro pomylku',typeRequest:'Propozytsii',successTitle:'Dyakuyemo!',successText:'Vash vidguk uspishno vidpravleno. Vin bude rozglyanutiy najblyzhchym chasom.',newReport:'Novyy zvit',next:'Dali',stepDetails:'Detali',stepContact:'Kontakt i zobrazhennya',stepSubmit:'Vidpravyty'}
+  tr:{pageSubtitle:'Geri bildiriminizi paylasin',labelSite:'Site',labelTitle:'Baslik',labelCategory:'Kategori',labelDesc:'Aciklama',labelPageUrl:"Sayfa URL'i",labelContact:'Iletisim Bilgileri (Opsiyonel)',labelFirstName:'Ad',labelLastName:'Soyad',labelContactType:'Iletisim Turu',labelContactValue:'Iletisim Degeri',labelImages:'Gorseller (Maks. 5)',dropText:'Dosyalari surukleyin veya tiklayin',submitBtn:'Gonder',sending:'Gonderiliyor...',errorGeneric:'Bir hata olustu. Lutfen tekrar deneyin.',autoDetected:'Otomatik algilandi',selectPlaceholder:'Secin...',catDesign:'Tasarim',catFunctionality:'Islevsellik',catPerformance:'Performans',catContent:'Icerik',catMobile:'Mobil',catSecurity:'Guvenlik',catOther:'Diger',optPhone:'Telefon',titlePlaceholder:'Kisa bir baslik yazin',descPlaceholder:'Detayli olarak aciklayin',maxImages:'En fazla 5 gorsel yuklenebilir',siteSelectPlaceholder:'Site secin...',typeBug:'Hata Bildirimi',typeRequest:'Oneriler',successTitle:'Tesekkurler!',successText:'Geri bildiriminiz basariyla gonderildi. En kisa surede degerlendirilecektir.',newReport:'Yeni Bildirim'},
+  en:{pageSubtitle:'Share your feedback',labelSite:'Site',labelTitle:'Title',labelCategory:'Category',labelDesc:'Description',labelPageUrl:'Page URL',labelContact:'Contact Info (Optional)',labelFirstName:'First Name',labelLastName:'Last Name',labelContactType:'Contact Type',labelContactValue:'Contact Value',labelImages:'Screenshots (Max 5)',dropText:'Drag files here or click to browse',submitBtn:'Submit',sending:'Sending...',errorGeneric:'An error occurred. Please try again.',autoDetected:'Auto-detected',selectPlaceholder:'Select...',catDesign:'Design',catFunctionality:'Functionality',catPerformance:'Performance',catContent:'Content',catMobile:'Mobile',catSecurity:'Security',catOther:'Other',optPhone:'Phone',titlePlaceholder:'Write a short title',descPlaceholder:'Describe in detail',maxImages:'Maximum 5 images allowed',siteSelectPlaceholder:'Select a site...',typeBug:'Bug Report',typeRequest:'Suggestions',successTitle:'Thank you!',successText:'Your feedback has been submitted successfully. It will be reviewed shortly.',newReport:'New Report'},
+  de:{pageSubtitle:'Teilen Sie Ihr Feedback',labelSite:'Webseite',labelTitle:'Titel',labelCategory:'Kategorie',labelDesc:'Beschreibung',labelPageUrl:'Seiten-URL',labelContact:'Kontaktdaten (Optional)',labelFirstName:'Vorname',labelLastName:'Nachname',labelContactType:'Kontaktart',labelContactValue:'Kontaktwert',labelImages:'Bilder (Max. 5)',dropText:'Dateien hierher ziehen oder klicken',submitBtn:'Absenden',sending:'Wird gesendet...',errorGeneric:'Fehler aufgetreten. Bitte erneut versuchen.',autoDetected:'Automatisch erkannt',selectPlaceholder:'Auswahlen...',catDesign:'Design',catFunctionality:'Funktionalitat',catPerformance:'Leistung',catContent:'Inhalt',catMobile:'Mobil',catSecurity:'Sicherheit',catOther:'Sonstiges',optPhone:'Telefon',titlePlaceholder:'Kurzen Titel eingeben',descPlaceholder:'Beschreiben Sie es im Detail',maxImages:'Maximal 5 Bilder',siteSelectPlaceholder:'Webseite auswahlen...',typeBug:'Fehlerbericht',typeRequest:'Vorschlage',successTitle:'Vielen Dank!',successText:'Ihr Feedback wurde erfolgreich gesendet.',newReport:'Neuer Bericht'},
+  ru:{pageSubtitle:'Podelites otzyvom',labelSite:'Sayt',labelTitle:'Zagolovok',labelCategory:'Kategoriya',labelDesc:'Opisaniye',labelPageUrl:'URL stranitsy',labelContact:'Kontakty (Neobyzatelno)',labelFirstName:'Imya',labelLastName:'Familiya',labelContactType:'Tip kontakta',labelContactValue:'Znacheniye',labelImages:'Izobrazheniya (Maks. 5)',dropText:'Peretashchite fayly ili nazmite',submitBtn:'Otpravit',sending:'Otpravka...',errorGeneric:'Oshibka. Poprobuyete snova.',autoDetected:'Opredeleno avtomaticheski',selectPlaceholder:'Vybrat...',catDesign:'Dizayn',catFunctionality:'Funktsionalnost',catPerformance:'Proizvoditelnost',catContent:'Kontent',catMobile:'Mobilniy',catSecurity:'Bezopasnost',catOther:'Drugoye',optPhone:'Telefon',titlePlaceholder:'Korotkiy zagolovok',descPlaceholder:'Podrobno opishite',maxImages:'Maksimum 5',siteSelectPlaceholder:'Vybrat sayt...',typeBug:'Oshibka',typeRequest:'Predlozheniya',successTitle:'Spasibo!',successText:'Vash otzyv uspeshno otpravlen.',newReport:'Novyy otchet'},
+  uk:{pageSubtitle:'Podilitsya vidgukom',labelSite:'Sayt',labelTitle:'Zagolovok',labelCategory:'Kategoriya',labelDesc:'Opys',labelPageUrl:'URL storinky',labelContact:"Kontakty (Neobov'yazkovo)",labelFirstName:"Im'ya",labelLastName:'Prizvyshche',labelContactType:'Typ kontaktu',labelContactValue:'Znachennya',labelImages:'Zobrazhennya (Maks. 5)',dropText:'Peretagnit fayly abo natysnit',submitBtn:'Vidpravyty',sending:'Vidpravka...',errorGeneric:'Pomylka. Sprobujte shche raz.',autoDetected:'Vyznacheno avtomatychno',selectPlaceholder:'Obraty...',catDesign:'Dyzayn',catFunctionality:'Funktsionalnist',catPerformance:'Produktyvnist',catContent:'Kontent',catMobile:'Mobilnyy',catSecurity:'Bezpeka',catOther:'Inshe',optPhone:'Telefon',titlePlaceholder:'Korotkyy zagolovok',descPlaceholder:'Detalno opishit',maxImages:'Maksymum 5',siteSelectPlaceholder:'Obraty sayt...',typeBug:'Pomylka',typeRequest:'Propozytsii',successTitle:'Dyakuyemo!',successText:'Vash vidguk uspishno vidpravleno.',newReport:'Novyy zvit'}
 };
 
-let currentLang='tr',sites=[],selectedFiles=[],autoDetectedSite=false,currentReportType='bug',turnstileWidgetId=null,currentStep=0;
-const TOTAL_STEPS=3;
+let currentLang='tr',sites=[],selectedFiles=[],autoDetectedSite=false,currentReportType='bug',turnstileWidgetId=null;
 
 function detectLang(){
-  const n=(navigator.language||navigator.userLanguage||'tr').toLowerCase();
+  const n=(navigator.language||'tr').toLowerCase();
   if(n.startsWith('en'))return'en';if(n.startsWith('de'))return'de';if(n.startsWith('ru'))return'ru';if(n.startsWith('uk'))return'uk';return'tr';
 }
 
-/* Language dropdown */
-function toggleLangDropdown(id){
-  const dd=document.getElementById(id);
-  const isOpen=dd.classList.contains('open');
-  closeAllDropdowns();
-  if(!isOpen) dd.classList.add('open');
-  if(id==='langDropdown') document.getElementById('langTrigger').classList.toggle('open',!isOpen);
+/* Language */
+function toggleLang(){
+  document.getElementById('langMenu').classList.toggle('open');
 }
-function closeAllDropdowns(){
-  document.getElementById('langDropdown').classList.remove('open');
-  document.getElementById('mobLangDropdown').classList.remove('open');
-  document.getElementById('langTrigger').classList.remove('open');
-}
-
 function setLang(lang){
-  currentLang=lang;
-  const t=T[lang];
+  currentLang=lang;const t=T[lang];
   document.documentElement.lang=lang;
-  document.getElementById('pageTitle').textContent=t.pageTitle;
+  document.getElementById('langFlag').textContent=FLAGS[lang];
+  document.getElementById('langLabel').textContent=lang.toUpperCase();
+  document.querySelectorAll('.lang-item').forEach(el=>el.classList.toggle('active',el.dataset.lang===lang));
+  document.getElementById('langMenu').classList.remove('open');
+
   document.getElementById('pageSubtitle').textContent=t.pageSubtitle;
-  document.getElementById('labelSite').textContent=t.labelSite;
-  document.getElementById('labelTitle').textContent=t.labelTitle;
-  document.getElementById('labelCategory').textContent=t.labelCategory;
-  document.getElementById('labelDesc').textContent=t.labelDesc;
-  document.getElementById('labelPageUrl').textContent=t.labelPageUrl;
-  document.getElementById('labelContact').textContent=t.labelContact;
-  document.getElementById('labelFirstName').textContent=t.labelFirstName;
-  document.getElementById('labelLastName').textContent=t.labelLastName;
-  document.getElementById('labelContactType').textContent=t.labelContactType;
-  document.getElementById('labelContactValue').textContent=t.labelContactValue;
-  document.getElementById('labelImages').textContent=t.labelImages;
-  document.getElementById('dropText').textContent=t.dropText;
-  document.getElementById('titleInput').placeholder=t.titlePlaceholder;
-  document.getElementById('descInput').placeholder=t.descPlaceholder;
-  document.getElementById('typeBugLabel').textContent=t.typeBug;
-  document.getElementById('typeRequestLabel').textContent=t.typeRequest;
-  document.getElementById('successTitle').textContent=t.successTitle;
-  document.getElementById('successText').textContent=t.successText;
-  document.getElementById('newReportBtn').querySelector('span').textContent=t.newReport;
-  document.getElementById('optCatPlaceholder').textContent=t.selectPlaceholder;
-  document.getElementById('optDesign').textContent=t.catDesign;
-  document.getElementById('optFunctionality').textContent=t.catFunctionality;
-  document.getElementById('optPerformance').textContent=t.catPerformance;
-  document.getElementById('optContent').textContent=t.catContent;
-  document.getElementById('optMobile').textContent=t.catMobile;
-  document.getElementById('optSecurity').textContent=t.catSecurity;
-  document.getElementById('optOther').textContent=t.catOther;
-  document.getElementById('optPhone').textContent=t.optPhone;
-
-  if(autoDetectedSite){document.getElementById('siteNote').textContent=t.autoDetected}
-
-  document.getElementById('currentFlag').textContent=FLAGS[lang];
-  document.getElementById('currentLangName').textContent=LANG_NAMES[lang];
-  document.getElementById('mobLangBtn').textContent=FLAGS[lang];
-
-  document.querySelectorAll('.lang-option').forEach(o=>o.classList.toggle('active',o.dataset.lang===lang));
-
+  el('labelSite').innerHTML=t.labelSite+' <span class="req">*</span>';
+  el('labelTitle').innerHTML=t.labelTitle+' <span class="req">*</span>';
+  el('labelCategory').innerHTML=t.labelCategory+' <span class="req">*</span>';
+  el('labelDesc').innerHTML=t.labelDesc+' <span class="req">*</span>';
+  el('labelPageUrl').textContent=t.labelPageUrl;
+  el('labelContact').textContent=t.labelContact;
+  el('labelFirstName').textContent=t.labelFirstName;
+  el('labelLastName').textContent=t.labelLastName;
+  el('labelContactType').textContent=t.labelContactType;
+  el('labelContactValue').textContent=t.labelContactValue;
+  el('labelImages').textContent=t.labelImages;
+  el('dropText').textContent=t.dropText;
+  el('titleInput').placeholder=t.titlePlaceholder;
+  el('descInput').placeholder=t.descPlaceholder;
+  el('typeBugLabel').textContent=t.typeBug;
+  el('typeRequestLabel').textContent=t.typeRequest;
+  el('successTitle').textContent=t.successTitle;
+  el('successText').textContent=t.successText;
+  el('newReportLabel').textContent=t.newReport;
+  el('optCatPlaceholder').textContent=t.selectPlaceholder;
+  el('optDesign').textContent=t.catDesign;
+  el('optFunctionality').textContent=t.catFunctionality;
+  el('optPerformance').textContent=t.catPerformance;
+  el('optContent').textContent=t.catContent;
+  el('optMobile').textContent=t.catMobile;
+  el('optSecurity').textContent=t.catSecurity;
+  el('optOther').textContent=t.catOther;
+  el('optPhone').textContent=t.optPhone;
+  if(autoDetectedSite) el('siteNote').textContent=t.autoDetected;
+  if(!el('submitBtn').innerHTML.includes('spinner')) el('submitLabel').textContent=t.submitBtn;
   updateSiteSelect();
-  updateStepUI();
-  closeAllDropdowns();
-
-  const btn=document.getElementById('submitBtn');
-  if(!btn.innerHTML.includes('spinner')){
-    document.getElementById('submitLabel').textContent=t.submitBtn;
-  }
 }
+function el(id){return document.getElementById(id)}
 
-/* Report type — clears form when switching */
+/* Report type */
 function setReportType(type){
-  if(currentReportType===type) return;
+  if(currentReportType===type)return;
   currentReportType=type;
-  document.getElementById('reportTypeInput').value=type;
-  document.querySelectorAll('.type-btn').forEach(b=>b.classList.toggle('active',b.dataset.type===type));
-  document.querySelectorAll('.mob-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.type===type));
-
-  // Clear form fields
-  document.getElementById('bugForm').reset();
-  document.getElementById('reportTypeInput').value=type;
-  document.getElementById('titleInput').value='';
-  document.getElementById('descInput').value='';
-  document.getElementById('categorySelect').value='';
-  document.getElementById('pageUrlInput').value='';
-  document.getElementById('firstNameInput').value='';
-  document.getElementById('lastNameInput').value='';
-  document.getElementById('contactTypeSelect').value='';
-  document.getElementById('contactValueInput').value='';
-  selectedFiles=[];
-  renderPreviews();
-  currentStep=0;
-  updateStepUI();
-
-  // Restore auto-detected site
-  if(autoDetectedSite){
-    document.getElementById('siteSelect').disabled=true;
-    matchReferrer();
-  }
-
-  // Reset Turnstile
-  if(turnstileWidgetId!==null){
-    turnstile.reset(turnstileWidgetId);
-    document.getElementById('submitBtn').disabled=true;
-  }
-
-  const m=document.getElementById('resultMsg');
-  m.className='msg';m.style.display='none';
+  document.querySelectorAll('#typeToggle button').forEach(b=>b.classList.toggle('active',b.dataset.type===type));
+  // Clear form
+  el('feedbackForm').reset();
+  el('titleInput').value='';el('descInput').value='';el('categorySelect').value='';
+  el('pageUrlInput').value='';el('firstNameInput').value='';el('lastNameInput').value='';
+  el('contactTypeSelect').value='';el('contactValueInput').value='';
+  selectedFiles=[];renderPreviews();
+  if(autoDetectedSite){el('siteSelect').disabled=true;matchReferrer()}
+  if(turnstileWidgetId!==null){turnstile.reset(turnstileWidgetId);el('submitBtn').disabled=true}
+  el('resultMsg').className='msg';el('resultMsg').style.display='none';
 }
 
-/* Steps */
-function updateStepUI(){
-  const t=T[currentLang];
-  const labels=[t.stepDetails,t.stepContact,t.stepSubmit];
-  document.getElementById('stepLabel').textContent=labels[currentStep]||'';
-  document.querySelectorAll('.step').forEach(s=>{s.classList.toggle('active',+s.dataset.step===currentStep)});
-  document.querySelectorAll('.step-pill').forEach(p=>{
-    const s=+p.dataset.step;
-    p.classList.toggle('active',s===currentStep);
-    p.classList.toggle('done',s<currentStep);
-  });
-
-  const btnPrev=document.getElementById('btnPrev');
-  const btnNext=document.getElementById('btnNext');
-  const btnSubmit=document.getElementById('submitBtn');
-
-  if(currentStep>0){
-    btnPrev.style.display='inline-flex';
-  } else {
-    btnPrev.style.display='none';
-  }
-
-  if(currentStep<TOTAL_STEPS-1){
-    btnNext.style.display='inline-flex';
-  } else {
-    btnNext.style.display='none';
-  }
-
-  if(currentStep===TOTAL_STEPS-1){
-    btnSubmit.style.display='inline-flex';
-  } else {
-    btnSubmit.style.display='none';
-  }
-
-  document.getElementById('nextLabel').textContent=t.next;
-}
-
-function nextStep(){
-  if(currentStep===0){
-    const s=document.getElementById('siteSelect'),ti=document.getElementById('titleInput'),c=document.getElementById('categorySelect'),d=document.getElementById('descInput');
-    if(!s.value||!ti.value.trim()||!c.value||!d.value.trim()){
-      [s,ti,c,d].forEach(el=>{if(!el.value||!el.value.trim()){el.style.borderColor='var(--error)';setTimeout(()=>el.style.borderColor='',1500)}});
-      return;
-    }
-  }
-  if(currentStep<TOTAL_STEPS-1){currentStep++;updateStepUI()}
-}
-
-function prevStep(){
-  if(currentStep>0){currentStep--;updateStepUI()}
+/* Collapsible contact */
+function toggleCollapse(){
+  el('contactTrigger').classList.toggle('open');
+  el('contactBody').classList.toggle('open');
 }
 
 /* Sites */
 function updateSiteSelect(){
-  const sel=document.getElementById('siteSelect');const t=T[currentLang];const cv=sel.value;sel.innerHTML='';
+  const sel=el('siteSelect');const t=T[currentLang];const cv=sel.value;sel.innerHTML='';
   const ph=document.createElement('option');ph.value='';ph.textContent=t.siteSelectPlaceholder;sel.appendChild(ph);
   sites.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o)});
   if(cv&&sites.includes(cv))sel.value=cv;
@@ -536,15 +368,19 @@ function loadSites(){
 }
 function matchReferrer(){
   const ref=document.referrer;if(!ref)return;
-  try{const h=new URL(ref).hostname.toLowerCase();const m=sites.find(s=>h===s||h.endsWith('.'+s));
-  if(m){const sel=document.getElementById('siteSelect');sel.value=m;sel.disabled=true;autoDetectedSite=true;
-  document.getElementById('siteNote').textContent=T[currentLang].autoDetected;document.getElementById('siteNote').classList.add('auto');
-  const pu=document.getElementById('pageUrlInput');if(!pu.value)pu.value=ref}}catch(e){}
+  try{
+    const h=new URL(ref).hostname.toLowerCase();
+    const m=sites.find(s=>h===s||h.endsWith('.'+s));
+    if(m){
+      el('siteSelect').value=m;el('siteSelect').disabled=true;autoDetectedSite=true;
+      el('siteNote').textContent=T[currentLang].autoDetected;el('siteNote').classList.add('auto');
+    }
+  }catch(e){}
 }
 
 /* Files */
 function renderPreviews(){
-  const g=document.getElementById('previewGrid');g.innerHTML='';
+  const g=el('previewGrid');g.innerHTML='';
   selectedFiles.forEach((f,i)=>{
     const item=document.createElement('div');item.className='preview-item';
     const img=document.createElement('img');img.src=URL.createObjectURL(f);img.onload=()=>URL.revokeObjectURL(img.src);
@@ -562,49 +398,46 @@ function addFiles(files){
 /* Turnstile */
 function initTurnstile(){
   if(!TURNSTILE_SITE_KEY||TURNSTILE_SITE_KEY==='__TURNSTILE_SITE_KEY__'){
-    document.getElementById('submitBtn').disabled=true;
-    document.getElementById('turnstileWrap').innerHTML='<p style="color:var(--error);font-size:.75rem">Turnstile not configured</p>';
+    el('submitBtn').disabled=true;
+    el('turnstileWrap').innerHTML='<p style="color:var(--error);font-size:.75rem">Turnstile not configured</p>';
     return;
   }
-  turnstileWidgetId=turnstile.render(document.getElementById('turnstileWrap'),{
+  turnstileWidgetId=turnstile.render(el('turnstileWrap'),{
     sitekey:TURNSTILE_SITE_KEY,theme:'light',
-    callback:()=>{document.getElementById('submitBtn').disabled=false},
-    'expired-callback':()=>{document.getElementById('submitBtn').disabled=true},
-    'error-callback':()=>{document.getElementById('submitBtn').disabled=true}
+    callback:()=>{el('submitBtn').disabled=false},
+    'expired-callback':()=>{el('submitBtn').disabled=true},
+    'error-callback':()=>{el('submitBtn').disabled=true}
   });
 }
 
 /* Success / Reset */
-function showSuccess(){document.getElementById('bugForm').style.display='none';document.getElementById('successScreen').classList.add('visible')}
+function showSuccess(){el('successOverlay').classList.add('visible')}
 function resetForm(){
-  document.getElementById('successScreen').classList.remove('visible');
-  document.getElementById('bugForm').style.display='';document.getElementById('bugForm').reset();
-  selectedFiles=[];renderPreviews();currentReportType='bug';
-  document.getElementById('reportTypeInput').value='bug';
-  document.querySelectorAll('.type-btn').forEach(b=>b.classList.toggle('active',b.dataset.type==='bug'));
-  document.querySelectorAll('.mob-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.type==='bug'));
-  currentStep=0;updateStepUI();
-  if(autoDetectedSite){document.getElementById('siteSelect').disabled=true;matchReferrer()}
-  if(turnstileWidgetId!==null){turnstile.reset(turnstileWidgetId);document.getElementById('submitBtn').disabled=true}
-  const m=document.getElementById('resultMsg');m.className='msg';m.style.display='none';
+  el('successOverlay').classList.remove('visible');
+  el('feedbackForm').reset();selectedFiles=[];renderPreviews();
+  currentReportType='bug';
+  document.querySelectorAll('#typeToggle button').forEach(b=>b.classList.toggle('active',b.dataset.type==='bug'));
+  if(autoDetectedSite){el('siteSelect').disabled=true;matchReferrer()}
+  if(turnstileWidgetId!==null){turnstile.reset(turnstileWidgetId);el('submitBtn').disabled=true}
+  el('resultMsg').className='msg';el('resultMsg').style.display='none';
 }
 
 /* Submit */
 async function submitForm(e){
-  e.preventDefault();const t=T[currentLang];const btn=document.getElementById('submitBtn');const msg=document.getElementById('resultMsg');
+  e.preventDefault();const t=T[currentLang];const btn=el('submitBtn');const msg=el('resultMsg');
   msg.className='msg';msg.style.display='none';btn.disabled=true;
-  btn.innerHTML='<span class="spinner"></span>'+t.sending;
+  btn.innerHTML='<span class="spinner"></span> '+t.sending;
   const fd=new FormData();
-  fd.append('site_id',document.getElementById('siteSelect').value);
+  fd.append('site_id',el('siteSelect').value);
   fd.append('report_type',currentReportType);
-  fd.append('title',document.getElementById('titleInput').value.trim());
-  fd.append('category',document.getElementById('categorySelect').value);
-  fd.append('description',document.getElementById('descInput').value.trim());
-  const pu=document.getElementById('pageUrlInput').value.trim();if(pu)fd.append('page_url',pu);
-  const fn=document.getElementById('firstNameInput').value.trim();if(fn)fd.append('first_name',fn);
-  const ln=document.getElementById('lastNameInput').value.trim();if(ln)fd.append('last_name',ln);
-  const ct=document.getElementById('contactTypeSelect').value;if(ct)fd.append('contact_type',ct);
-  const cv=document.getElementById('contactValueInput').value.trim();if(cv)fd.append('contact_value',cv);
+  fd.append('title',el('titleInput').value.trim());
+  fd.append('category',el('categorySelect').value);
+  fd.append('description',el('descInput').value.trim());
+  const pu=el('pageUrlInput').value.trim();if(pu)fd.append('page_url',pu);
+  const fn=el('firstNameInput').value.trim();if(fn)fd.append('first_name',fn);
+  const ln=el('lastNameInput').value.trim();if(ln)fd.append('last_name',ln);
+  const ct=el('contactTypeSelect').value;if(ct)fd.append('contact_type',ct);
+  const cv=el('contactValueInput').value.trim();if(cv)fd.append('contact_value',cv);
   selectedFiles.forEach(f=>fd.append('images',f));
   const ti=document.querySelector('[name="cf-turnstile-response"]');if(ti)fd.append('cf-turnstile-response',ti.value);
   try{
@@ -612,46 +445,26 @@ async function submitForm(e){
     if(r.ok){showSuccess()}else{
       msg.className='msg error';msg.textContent=d.error||t.errorGeneric;msg.style.display='block';
       btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> <span id="submitLabel">'+t.submitBtn+'</span>';
-      if(turnstileWidgetId!==null){turnstile.reset(turnstileWidgetId);btn.disabled=true}else{btn.disabled=false}
+      if(turnstileWidgetId!==null){turnstile.reset(turnstileWidgetId);btn.disabled=true}
     }
   }catch(err){
     msg.className='msg error';msg.textContent=t.errorGeneric;msg.style.display='block';
     btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> <span id="submitLabel">'+t.submitBtn+'</span>';
-    if(turnstileWidgetId!==null){turnstile.reset(turnstileWidgetId);btn.disabled=true}else{btn.disabled=false}
+    if(turnstileWidgetId!==null){turnstile.reset(turnstileWidgetId);btn.disabled=true}
   }
 }
 
 /* Init */
 document.addEventListener('DOMContentLoaded',()=>{
-  setLang(detectLang());loadSites();updateStepUI();
-  document.getElementById('bugForm').addEventListener('submit',submitForm);
-  document.getElementById('fileInput').addEventListener('change',e=>addFiles(e.target.files));
-
-  const dz=document.getElementById('dropZone');
+  setLang(detectLang());loadSites();
+  el('feedbackForm').addEventListener('submit',submitForm);
+  el('fileInput').addEventListener('change',e=>addFiles(e.target.files));
+  const dz=el('dropZone');
   dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over')});
   dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
   dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');addFiles(e.dataTransfer.files)});
-
-  // Desktop lang dropdown
-  document.getElementById('langTrigger').addEventListener('click',()=>toggleLangDropdown('langDropdown'));
-  document.querySelectorAll('#langDropdown .lang-option').forEach(o=>o.addEventListener('click',()=>setLang(o.dataset.lang)));
-
-  // Mobile lang dropdown
-  document.getElementById('mobLangBtn').addEventListener('click',e=>{e.stopPropagation();toggleLangDropdown('mobLangDropdown')});
-  document.querySelectorAll('#mobLangDropdown .lang-option').forEach(o=>o.addEventListener('click',()=>setLang(o.dataset.lang)));
-
-  // Close dropdowns on outside click
-  document.addEventListener('click',e=>{
-    if(!e.target.closest('.panel-bottom')&&!e.target.closest('.mob-lang-btn')&&!e.target.closest('.mob-lang-dropdown')){
-      closeAllDropdowns();
-    }
-  });
-
-  // Mobile type buttons
-  document.getElementById('mobBugBtn').addEventListener('click',()=>setReportType('bug'));
-  document.getElementById('mobReqBtn').addEventListener('click',()=>setReportType('request'));
-
-  // Turnstile — submit stays disabled until success
+  document.querySelectorAll('.lang-item').forEach(o=>o.addEventListener('click',()=>setLang(o.dataset.lang)));
+  document.addEventListener('click',e=>{if(!e.target.closest('.lang-select'))el('langMenu').classList.remove('open')});
   if(typeof turnstile!=='undefined'){initTurnstile()}else{
     const ch=setInterval(()=>{if(typeof turnstile!=='undefined'){clearInterval(ch);initTurnstile()}},100);
   }
