@@ -24,6 +24,8 @@ type Config struct {
 	TLSCertFile       string
 	TLSKeyFile        string
 	TrustedProxies    []*net.IPNet
+	ImageAPIURL       string
+	ImageAPIKey       string
 }
 
 // Load reads configuration from environment variables.
@@ -87,6 +89,9 @@ func Load() (*Config, error) {
 		}
 		cfg.WorkerConcurrency = wc
 	}
+
+	cfg.ImageAPIURL = os.Getenv("IMAGE_API_URL")
+	cfg.ImageAPIKey = os.Getenv("IMAGE_API_KEY")
 
 	cfg.TLSCertFile = os.Getenv("TLS_CERT_FILE")
 	cfg.TLSKeyFile = os.Getenv("TLS_KEY_FILE")

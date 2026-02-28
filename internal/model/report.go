@@ -51,6 +51,7 @@ type ReportRequest struct {
 	ContactValue *string  `json:"contact_value,omitempty"`
 	FirstName    *string  `json:"first_name,omitempty"`
 	LastName     *string  `json:"last_name,omitempty"`
+	ImageURLs    []string `json:"image_urls,omitempty"`
 }
 
 // QueueMessage is what gets pushed to Redis.
@@ -65,6 +66,7 @@ type QueueMessage struct {
 	ContactValue *string  `json:"contact_value,omitempty"`
 	FirstName    *string  `json:"first_name,omitempty"`
 	LastName     *string  `json:"last_name,omitempty"`
+	ImageURLs    []string `json:"image_urls,omitempty"`
 	ReceivedAt   string   `json:"received_at"`
 	RetryCount   int      `json:"retry_count"`
 }
@@ -81,6 +83,7 @@ type BugReport struct {
 	ContactValue *string   `json:"contact_value,omitempty"`
 	FirstName    *string   `json:"first_name,omitempty"`
 	LastName     *string   `json:"last_name,omitempty"`
+	ImageURLs    []string  `json:"image_urls,omitempty"`
 	Status       string    `json:"status"`
 	CreatedAt    time.Time `json:"created_at"`
 }

@@ -2,11 +2,13 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/devrimsoft/bug-notifications-api/internal/config"
 	"github.com/devrimsoft/bug-notifications-api/internal/middleware"
 	"github.com/devrimsoft/bug-notifications-api/internal/model"
 	"github.com/devrimsoft/bug-notifications-api/internal/queue"
@@ -14,31 +16,94 @@ import (
 	"github.com/google/uuid"
 )
 
+const MaxImages = 5
+
 type Handler struct {
 	producer *queue.Producer
+	cfg      *config.Config
 }
 
-func NewHandler(producer *queue.Producer) *Handler {
-	return &Handler{producer: producer}
+func NewHandler(producer *queue.Producer, cfg *config.Config) *Handler {
+	return &Handler{producer: producer, cfg: cfg}
 }
 
 // CreateReport handles POST /v1/reports
+// Accepts application/json (no images) or multipart/form-data (with optional images).
 func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		writeJSON(w, http.StatusMethodNotAllowed, model.ErrorResponse{
-			Error: "method not allowed",
-			Code:  "METHOD_NOT_ALLOWED",
-		})
-		return
-	}
-
 	var req model.ReportRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, model.ErrorResponse{
-			Error: "invalid JSON body",
-			Code:  "INVALID_JSON",
-		})
-		return
+
+	ct := r.Header.Get("Content-Type")
+
+	// Validated images ready for upload: [{data, filename}, ...]
+	type pendingImage struct {
+		data     []byte
+		filename string
+	}
+	var pendingImages []pendingImage
+
+	if strings.HasPrefix(ct, "multipart/form-data") {
+		// 5 images * 5MB + 1MB form overhead
+		if err := r.ParseMultipartForm(MaxImages*MaxImageSize + 1024*1024); err != nil {
+			writeJSON(w, http.StatusBadRequest, model.ErrorResponse{
+				Error: "invalid multipart form",
+				Code:  "INVALID_FORM",
+			})
+			return
+		}
+
+		req.SiteID = r.FormValue("site_id")
+		req.Title = r.FormValue("title")
+		req.Description = r.FormValue("description")
+		req.Category = model.Category(r.FormValue("category"))
+
+		if v := r.FormValue("page_url"); v != "" {
+			req.PageURL = &v
+		}
+		if v := r.FormValue("contact_type"); v != "" {
+			req.ContactType = &v
+		}
+		if v := r.FormValue("contact_value"); v != "" {
+			req.ContactValue = &v
+		}
+		if v := r.FormValue("first_name"); v != "" {
+			req.FirstName = &v
+		}
+		if v := r.FormValue("last_name"); v != "" {
+			req.LastName = &v
+		}
+
+		// Multiple images: field name "images" (multiple files)
+		if r.MultipartForm != nil && r.MultipartForm.File != nil {
+			files := r.MultipartForm.File["images"]
+			if len(files) > MaxImages {
+				writeJSON(w, http.StatusBadRequest, model.ErrorResponse{
+					Error: fmt.Sprintf("maximum %d images allowed", MaxImages),
+					Code:  "TOO_MANY_IMAGES",
+				})
+				return
+			}
+
+			for i, fh := range files {
+				data, _, err := validateImage(fh)
+				if err != nil {
+					writeJSON(w, http.StatusBadRequest, model.ErrorResponse{
+						Error: fmt.Sprintf("image[%d]: %s", i, err.Error()),
+						Code:  "INVALID_IMAGE",
+					})
+					return
+				}
+				pendingImages = append(pendingImages, pendingImage{data: data, filename: fh.Filename})
+			}
+		}
+	} else {
+		// JSON body (no images)
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeJSON(w, http.StatusBadRequest, model.ErrorResponse{
+				Error: "invalid JSON body",
+				Code:  "INVALID_JSON",
+			})
+			return
+		}
 	}
 
 	// Override site_id from the authenticated context (don't trust client)
@@ -57,6 +122,31 @@ func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Upload images to R2
+	if len(pendingImages) > 0 {
+		if h.cfg.ImageAPIURL == "" || h.cfg.ImageAPIKey == "" {
+			slog.Error("image upload attempted but IMAGE_API_URL/IMAGE_API_KEY not configured")
+			writeJSON(w, http.StatusServiceUnavailable, model.ErrorResponse{
+				Error: "image upload is not configured",
+				Code:  "IMAGE_NOT_CONFIGURED",
+			})
+			return
+		}
+
+		for i, img := range pendingImages {
+			imageURL, err := uploadToR2(h.cfg.ImageAPIURL, h.cfg.ImageAPIKey, img.data, img.filename)
+			if err != nil {
+				slog.Error("r2 image upload failed", "error", err, "index", i, "filename", img.filename)
+				writeJSON(w, http.StatusBadGateway, model.ErrorResponse{
+					Error: fmt.Sprintf("image[%d] upload failed", i),
+					Code:  "IMAGE_UPLOAD_FAILED",
+				})
+				return
+			}
+			req.ImageURLs = append(req.ImageURLs, imageURL)
+		}
+	}
+
 	// Build queue message
 	eventID := uuid.New().String()
 	msg := &model.QueueMessage{
@@ -70,6 +160,7 @@ func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 		ContactValue: req.ContactValue,
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
+		ImageURLs:    req.ImageURLs,
 		ReceivedAt:   time.Now().UTC().Format(time.RFC3339),
 		RetryCount:   0,
 	}
@@ -84,7 +175,7 @@ func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	slog.Info("report queued", "event_id", eventID, "site_id", req.SiteID)
+	slog.Info("report queued", "event_id", eventID, "site_id", req.SiteID, "images", len(req.ImageURLs))
 
 	writeJSON(w, http.StatusAccepted, model.ReportResponse{
 		EventID: eventID,

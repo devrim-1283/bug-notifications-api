@@ -45,7 +45,7 @@ func main() {
 	cancel()
 
 	producer := queue.NewProducer(rdb)
-	handler := api.NewHandler(producer)
+	handler := api.NewHandler(producer, cfg)
 
 	// Router
 	r := chi.NewRouter()
@@ -54,7 +54,7 @@ func main() {
 	r.Use(middleware.SecureHeaders())
 	r.Use(middleware.RequireHTTPS())
 	r.Use(middleware.CORSMiddleware(cfg))
-	r.Use(middleware.BodyLimit(256 * 1024)) // 256KB
+	r.Use(middleware.BodyLimit(26 * 1024 * 1024)) // 26MB (5 images * 5MB + 1MB form data)
 	r.Use(middleware.RateLimit(rdb, cfg.RateLimitRPS, cfg.TrustedProxies))
 
 	// Health check (no auth required)

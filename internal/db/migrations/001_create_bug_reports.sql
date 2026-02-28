@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS bug_reports (
     contact_value TEXT,
     first_name    TEXT,
     last_name     TEXT,
+    image_urls    JSONB DEFAULT '[]',
     status        TEXT NOT NULL DEFAULT 'new',
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );

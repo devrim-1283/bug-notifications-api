@@ -19,6 +19,7 @@ Browser -> Sitenizin Backend'i (BFF) -> Bug Notifications API -> Redis Queue -> 
 
 - **Tek endpoint:** `POST /v1/reports` (202 Accepted, asenkron isleme)
 - **Health check:** `GET /health`
+- **Coklu resim yukleme:** Opsiyonel, max 5 resim (jpg/png/webp/gif, her biri max 5MB)
 - **5 katmanli guvenlik:** CORS + API Key + Origin eslesmesi + Browser-only + Rate limit
 - **Retry & DLQ:** Basarisiz DB insertlerde 5 deneme, sonra DLQ
 - **Idempotency:** `event_id` uzerinden duplicate kayit onleme
@@ -118,6 +119,8 @@ docker run -p 3000:3000 --env-file .env bug-notifications-api
 | `TLS_CERT_FILE` | _(opsiyonel)_ | TLS sertifika dosyasi |
 | `TLS_KEY_FILE` | _(opsiyonel)_ | TLS private key dosyasi |
 | `TRUSTED_PROXIES` | _(opsiyonel)_ | Guvenilir proxy CIDR araliklari |
+| `IMAGE_API_URL` | _(opsiyonel)_ | Resim API base URL'i |
+| `IMAGE_API_KEY` | _(opsiyonel)_ | Resim API anahtari |
 
 **SITE_KEYS ornegi:**
 ```
@@ -183,6 +186,35 @@ X-API-Key: <site-api-key>
 }
 ```
 
+### Resimli Bug Bildirimi (multipart/form-data)
+
+Resim eklemek icin `multipart/form-data` kullanin. `images` field'ina birden fazla dosya eklenebilir.
+
+```javascript
+const form = new FormData();
+form.append('title', 'Login butonu calismiyor');
+form.append('description', 'Safari de tiklandiginda beyaz ekran geliyor');
+form.append('category', 'functionality');
+form.append('page_url', 'https://example.com/login');
+form.append('images', dosya1); // 1. resim
+form.append('images', dosya2); // 2. resim
+
+await fetch('https://bug.devrimsoft.com/v1/reports', {
+  method: 'POST',
+  headers: { 'X-API-Key': 'site-api-key' },
+  body: form
+});
+```
+
+**Resim kurallari:**
+
+| Kural | Deger |
+|-------|-------|
+| Max dosya sayisi | 5 |
+| Max dosya boyutu | 5MB (her biri) |
+| Gecerli formatlar | jpg, png, webp, gif |
+| Dogrulama | Uzanti + magic bytes (icerik dogrulama) |
+
 ### Saglik Kontrolu
 
 ```
@@ -194,6 +226,31 @@ GET /health
   "status": "ok"
 }
 ```
+
+## Resim Depolama (Image API)
+
+Resimler DevrimSoft'un kendi **R2 Image Processor API**'si uzerinden islenir ve depolanir (`view.devrimsoft.com`). Bu, bu projeye ozel gelistirilmis ayri bir mikro servistir.
+
+| Endpoint | Aciklama |
+|----------|----------|
+| `POST /upload` | Resim yukler, otomatik WebP'ye donusturur, R2'ye kaydeder |
+| `DELETE /delete` | Yuklenmis resmi siler |
+| `GET /health` | API ve R2 baglanti durumu |
+
+**Ozellikler:**
+- Otomatik WebP donusumu (kalite: 85, max 1920px genislik)
+- EXIF/GPS metadata temizleme (gizlilik)
+- API key bazli klasor izolasyonu
+- UUID dosya adlari (cakisma onleme)
+
+Resim API'si bu servis tarafindan dahili olarak kullanilir. Kullanici dogrudan erisemez — resimler bug report istegi icinde dosya olarak gonderilir, API otomatik olarak R2'ye yukler ve URL'leri DB'de saklar.
+
+```
+IMAGE_API_URL=https://view.devrimsoft.com
+IMAGE_API_KEY=your-r2-api-key
+```
+
+> Bu degiskenler ayarlanmazsa resim yukleme devre disi kalir, diger tum ozellikler calismaya devam eder.
 
 ## Yazar
 
@@ -232,6 +289,7 @@ Browser -> Your Site's Backend (BFF) -> Bug Notifications API -> Redis Queue -> 
 
 - **Single endpoint:** `POST /v1/reports` (202 Accepted, async processing)
 - **Health check:** `GET /health`
+- **Multiple image upload:** Optional, up to 5 images (jpg/png/webp/gif, max 5MB each)
 - **5-layer security:** CORS + API Key + Origin matching + Browser-only + Rate limit
 - **Retry & DLQ:** 5 retry attempts on failed DB inserts, then DLQ
 - **Idempotency:** Duplicate prevention via `event_id`
@@ -331,6 +389,8 @@ docker run -p 3000:3000 --env-file .env bug-notifications-api
 | `TLS_CERT_FILE` | _(optional)_ | TLS certificate file |
 | `TLS_KEY_FILE` | _(optional)_ | TLS private key file |
 | `TRUSTED_PROXIES` | _(optional)_ | Trusted proxy CIDR ranges |
+| `IMAGE_API_URL` | _(optional)_ | Image API base URL |
+| `IMAGE_API_KEY` | _(optional)_ | Image API key |
 
 **SITE_KEYS example:**
 ```
@@ -396,6 +456,35 @@ X-API-Key: <site-api-key>
 }
 ```
 
+### Bug Report with Images (multipart/form-data)
+
+To attach images, use `multipart/form-data`. Multiple files can be added to the `images` field.
+
+```javascript
+const form = new FormData();
+form.append('title', 'Login button not working');
+form.append('description', 'White screen appears when clicking login on Safari');
+form.append('category', 'functionality');
+form.append('page_url', 'https://example.com/login');
+form.append('images', file1); // 1st image
+form.append('images', file2); // 2nd image
+
+await fetch('https://bug.devrimsoft.com/v1/reports', {
+  method: 'POST',
+  headers: { 'X-API-Key': 'site-api-key' },
+  body: form
+});
+```
+
+**Image rules:**
+
+| Rule | Value |
+|------|-------|
+| Max file count | 5 |
+| Max file size | 5MB (each) |
+| Allowed formats | jpg, png, webp, gif |
+| Validation | Extension + magic bytes (content verification) |
+
 ### Health Check
 
 ```
@@ -407,6 +496,31 @@ GET /health
   "status": "ok"
 }
 ```
+
+## Image Storage (Image API)
+
+Images are processed and stored via DevrimSoft's own **R2 Image Processor API** (`view.devrimsoft.com`). This is a separate microservice built specifically for this ecosystem.
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /upload` | Uploads image, auto-converts to WebP, stores in R2 |
+| `DELETE /delete` | Deletes an uploaded image |
+| `GET /health` | API and R2 connection status |
+
+**Features:**
+- Automatic WebP conversion (quality: 85, max 1920px width)
+- EXIF/GPS metadata stripping (privacy)
+- API key-based folder isolation
+- UUID filenames (collision prevention)
+
+The Image API is used internally by this service. Users cannot access it directly — images are sent as files within the bug report request, and the API automatically uploads them to R2 and stores the URLs in the database.
+
+```
+IMAGE_API_URL=https://view.devrimsoft.com
+IMAGE_API_KEY=your-r2-api-key
+```
+
+> If these variables are not set, image upload is disabled. All other features continue to work normally.
 
 ## Author
 
