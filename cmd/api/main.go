@@ -19,7 +19,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-//go:embed frontend/index.html
+//go:embed frontend/dist
 var frontendFS embed.FS
 
 func main() {
@@ -64,14 +64,9 @@ func main() {
 	// Health check (no auth required)
 	r.Get("/health", handler.HealthCheck)
 
-	// Portal frontend (no auth required)
+	// Portal frontend (no auth required) — SPA with embedded dist/
 	if cfg.PortalDomain != "" {
-		frontendHTML, err := frontendFS.ReadFile("frontend/index.html")
-		if err != nil {
-			slog.Error("failed to read embedded frontend", "error", err)
-			os.Exit(1)
-		}
-		r.Get("/", handler.ServeFrontend(frontendHTML))
+		handler.MountFrontend(r, frontendFS)
 	}
 
 	// Protected routes

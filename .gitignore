@@ -28,3 +28,7 @@ Thumbs.db
 *.test
 *.out
 coverage.html
+
+# Frontend
+web/node_modules/
+cmd/api/frontend/dist/

@@ -1,10 +1,13 @@
 package api
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"net/http"
+	"path"
 	"strings"
 	"time"
 
@@ -13,6 +16,7 @@ import (
 	"github.com/devrimsoft/bug-notifications-api/internal/model"
 	"github.com/devrimsoft/bug-notifications-api/internal/queue"
 	"github.com/devrimsoft/bug-notifications-api/internal/validate"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
@@ -241,35 +245,76 @@ func (h *Handler) ListSites(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// ServeFrontend serves the portal HTML page with the portal API key injected.
-func (h *Handler) ServeFrontend(frontendHTML []byte) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		portalSite := h.cfg.PortalSite()
-		apiKey := ""
-		if portalSite != nil {
-			apiKey = portalSite.APIKey
-		}
+// MountFrontend sets up SPA serving from the embedded dist/ directory.
+// Static assets are served with cache headers; all other paths get index.html with config injected.
+func (h *Handler) MountFrontend(r chi.Router, embeddedFS embed.FS) {
+	// Sub-filesystem rooted at frontend/dist
+	distFS, err := fs.Sub(embeddedFS, "frontend/dist")
+	if err != nil {
+		slog.Error("failed to open embedded frontend/dist", "error", err)
+		return
+	}
 
-		// Build sites JSON array for injection
-		reportableDomains := h.cfg.ReportableDomains()
-		sitesJSON := "[]"
-		if len(reportableDomains) > 0 {
-			if b, err := json.Marshal(reportableDomains); err == nil {
-				sitesJSON = string(b)
-			}
-		}
+	// Pre-read index.html and inject config once at startup
+	indexBytes, err := fs.ReadFile(distFS, "index.html")
+	if err != nil {
+		slog.Error("failed to read embedded index.html", "error", err)
+		return
+	}
 
-		html := strings.Replace(string(frontendHTML), "__PORTAL_API_KEY__", apiKey, 1)
-		html = strings.Replace(html, "__PORTAL_DOMAIN__", h.cfg.PortalDomain, 1)
-		html = strings.Replace(html, "__TURNSTILE_SITE_KEY__", h.cfg.TurnstileSiteKey, 1)
-		html = strings.Replace(html, "__SITES_JSON__", sitesJSON, 1)
+	portalSite := h.cfg.PortalSite()
+	apiKey := ""
+	if portalSite != nil {
+		apiKey = portalSite.APIKey
+	}
 
+	reportableDomains := h.cfg.ReportableDomains()
+
+	configJSON, _ := json.Marshal(map[string]any{
+		"apiKey":           apiKey,
+		"turnstileSiteKey": h.cfg.TurnstileSiteKey,
+		"sites":            reportableDomains,
+		"portalDomain":     h.cfg.PortalDomain,
+	})
+
+	injectedHTML := strings.Replace(string(indexBytes), "__APP_CONFIG_JSON__", string(configJSON), 1)
+
+	serveIndex := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'unsafe-inline' https://challenges.cloudflare.com; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; font-src 'self' data:")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(html))
+		w.Write([]byte(injectedHTML))
 	}
+
+	fileServer := http.FileServer(http.FS(distFS))
+
+	// Catch-all: serve static files if they exist, otherwise serve index.html (SPA fallback)
+	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
+		// Clean the path
+		urlPath := r.URL.Path
+		if urlPath == "/" || urlPath == "" {
+			serveIndex(w, r)
+			return
+		}
+
+		// Strip leading slash for fs lookup
+		filePath := strings.TrimPrefix(urlPath, "/")
+
+		// Check if the file exists in the embedded filesystem
+		if info, err := fs.Stat(distFS, filePath); err == nil && !info.IsDir() {
+			// Serve static asset with appropriate caching
+			ext := path.Ext(filePath)
+			if ext == ".js" || ext == ".css" || ext == ".woff2" || ext == ".woff" || ext == ".ttf" {
+				w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			}
+			fileServer.ServeHTTP(w, r)
+			return
+		}
+
+		// SPA fallback: serve index.html
+		serveIndex(w, r)
+	})
 }
 
 // HealthCheck handles GET /health

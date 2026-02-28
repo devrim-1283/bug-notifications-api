@@ -29,3 +29,7 @@ coverage.html
 
 # Docs (not needed in container)
 *.md
+
+# Frontend (built in Docker)
+web/node_modules/
+cmd/api/frontend/dist/
