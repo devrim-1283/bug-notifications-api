@@ -52,6 +52,7 @@ func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 		}
 
 		req.SiteID = r.FormValue("site_id")
+		req.ReportType = model.ReportType(r.FormValue("report_type"))
 		req.Title = r.FormValue("title")
 		req.Description = r.FormValue("description")
 		req.Category = model.Category(r.FormValue("category"))
@@ -142,6 +143,31 @@ func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Turnstile verification — required when configured
+	if h.cfg.TurnstileSecretKey == "" {
+		writeJSON(w, http.StatusServiceUnavailable, model.ErrorResponse{
+			Error: "turnstile is not configured",
+			Code:  "TURNSTILE_NOT_CONFIGURED",
+		})
+		return
+	}
+	{
+		var turnstileToken string
+		if strings.HasPrefix(ct, "multipart/form-data") {
+			turnstileToken = r.FormValue("cf-turnstile-response")
+		} else {
+			turnstileToken = r.Header.Get("X-Turnstile-Token")
+		}
+		if err := verifyTurnstile(h.cfg.TurnstileSecretKey, turnstileToken, r.RemoteAddr); err != nil {
+			slog.Warn("turnstile verification failed", "error", err, "remote_addr", r.RemoteAddr)
+			writeJSON(w, http.StatusForbidden, model.ErrorResponse{
+				Error: "bot verification failed",
+				Code:  "TURNSTILE_FAILED",
+			})
+			return
+		}
+	}
+
 	// Upload images to R2
 	if len(pendingImages) > 0 {
 		if h.cfg.ImageAPIURL == "" || h.cfg.ImageAPIKey == "" {
@@ -172,6 +198,7 @@ func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 	msg := &model.QueueMessage{
 		EventID:      eventID,
 		SiteID:       req.SiteID,
+		ReportType:   req.ReportType,
 		Title:        strings.TrimSpace(req.Title),
 		Description:  strings.TrimSpace(req.Description),
 		Category:     req.Category,
@@ -223,12 +250,23 @@ func (h *Handler) ServeFrontend(frontendHTML []byte) http.HandlerFunc {
 			apiKey = portalSite.APIKey
 		}
 
+		// Build sites JSON array for injection
+		reportableDomains := h.cfg.ReportableDomains()
+		sitesJSON := "[]"
+		if len(reportableDomains) > 0 {
+			if b, err := json.Marshal(reportableDomains); err == nil {
+				sitesJSON = string(b)
+			}
+		}
+
 		html := strings.Replace(string(frontendHTML), "__PORTAL_API_KEY__", apiKey, 1)
 		html = strings.Replace(html, "__PORTAL_DOMAIN__", h.cfg.PortalDomain, 1)
+		html = strings.Replace(html, "__TURNSTILE_SITE_KEY__", h.cfg.TurnstileSiteKey, 1)
+		html = strings.Replace(html, "__SITES_JSON__", sitesJSON, 1)
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'unsafe-inline' https://challenges.cloudflare.com; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(html))
 	}

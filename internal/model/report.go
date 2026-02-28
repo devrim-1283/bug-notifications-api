@@ -2,6 +2,18 @@ package model
 
 import "time"
 
+type ReportType string
+
+const (
+	ReportTypeBug     ReportType = "bug"
+	ReportTypeRequest ReportType = "request"
+)
+
+var ValidReportTypes = map[ReportType]bool{
+	ReportTypeBug:     true,
+	ReportTypeRequest: true,
+}
+
 type Category string
 
 const (
@@ -42,10 +54,11 @@ var ValidContactTypes = map[ContactType]bool{
 
 // ReportRequest is the incoming API request body.
 type ReportRequest struct {
-	SiteID       string   `json:"site_id"`
-	Title        string   `json:"title"`
-	Description  string   `json:"description"`
-	Category     Category `json:"category"`
+	SiteID       string     `json:"site_id"`
+	ReportType   ReportType `json:"report_type"`
+	Title        string     `json:"title"`
+	Description  string     `json:"description"`
+	Category     Category   `json:"category"`
 	PageURL      *string  `json:"page_url,omitempty"`
 	ContactType  *string  `json:"contact_type,omitempty"`
 	ContactValue *string  `json:"contact_value,omitempty"`
@@ -56,11 +69,12 @@ type ReportRequest struct {
 
 // QueueMessage is what gets pushed to Redis.
 type QueueMessage struct {
-	EventID      string   `json:"event_id"`
-	SiteID       string   `json:"site_id"`
-	Title        string   `json:"title"`
-	Description  string   `json:"description"`
-	Category     Category `json:"category"`
+	EventID      string     `json:"event_id"`
+	SiteID       string     `json:"site_id"`
+	ReportType   ReportType `json:"report_type"`
+	Title        string     `json:"title"`
+	Description  string     `json:"description"`
+	Category     Category   `json:"category"`
 	PageURL      *string  `json:"page_url,omitempty"`
 	ContactType  *string  `json:"contact_type,omitempty"`
 	ContactValue *string  `json:"contact_value,omitempty"`
@@ -75,6 +89,7 @@ type QueueMessage struct {
 type BugReport struct {
 	ID           string    `json:"id"`
 	SiteID       string    `json:"site_id"`
+	ReportType   string    `json:"report_type"`
 	Title        string    `json:"title"`
 	Description  string    `json:"description"`
 	Category     string    `json:"category"`

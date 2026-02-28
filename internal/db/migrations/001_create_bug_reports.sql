@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS bug_reports (
     id            UUID PRIMARY KEY,
     site_id       TEXT NOT NULL,
+    report_type   TEXT NOT NULL DEFAULT 'bug' CHECK (report_type IN ('bug', 'request')),
     title         TEXT NOT NULL,
     description   TEXT NOT NULL,
     category      TEXT NOT NULL CHECK (category IN ('design', 'functionality', 'performance', 'content', 'mobile', 'security', 'other')),

@@ -50,6 +50,12 @@ func ReportRequest(r *model.ReportRequest) []string {
 	sanitizePtr(r.LastName)
 
 	// Required fields
+	if r.ReportType == "" {
+		r.ReportType = model.ReportTypeBug // default
+	}
+	if !model.ValidReportTypes[r.ReportType] {
+		errs = append(errs, fmt.Sprintf("invalid report_type %q, must be 'bug' or 'request'", r.ReportType))
+	}
 	if strings.TrimSpace(r.SiteID) == "" {
 		errs = append(errs, "site_id is required")
 	}

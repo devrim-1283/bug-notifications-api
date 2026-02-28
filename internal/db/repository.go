@@ -32,13 +32,14 @@ func (r *Repository) InsertReport(ctx context.Context, msg *model.QueueMessage) 
 	}
 
 	query := `
-		INSERT INTO bug_reports (id, site_id, title, description, category, page_url, contact_type, contact_value, first_name, last_name, image_urls, status, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'new', $12::timestamptz)
+		INSERT INTO bug_reports (id, site_id, report_type, title, description, category, page_url, contact_type, contact_value, first_name, last_name, image_urls, status, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'new', $13::timestamptz)
 		ON CONFLICT (id) DO NOTHING
 	`
 	_, err := r.pool.Exec(ctx, query,
 		msg.EventID,
 		msg.SiteID,
+		string(msg.ReportType),
 		msg.Title,
 		msg.Description,
 		string(msg.Category),
@@ -59,7 +60,7 @@ func (r *Repository) InsertReport(ctx context.Context, msg *model.QueueMessage) 
 // GetReport retrieves a single bug report by ID.
 func (r *Repository) GetReport(ctx context.Context, id string) (*model.BugReport, error) {
 	query := `
-		SELECT id, site_id, title, description, category, page_url, contact_type, contact_value, first_name, last_name, image_urls, status, created_at
+		SELECT id, site_id, report_type, title, description, category, page_url, contact_type, contact_value, first_name, last_name, image_urls, status, created_at
 		FROM bug_reports WHERE id = $1
 	`
 	row := r.pool.QueryRow(ctx, query, id)
@@ -67,7 +68,7 @@ func (r *Repository) GetReport(ctx context.Context, id string) (*model.BugReport
 	var report model.BugReport
 	var imageURLsJSON []byte
 	err := row.Scan(
-		&report.ID, &report.SiteID, &report.Title, &report.Description,
+		&report.ID, &report.SiteID, &report.ReportType, &report.Title, &report.Description,
 		&report.Category, &report.PageURL, &report.ContactType, &report.ContactValue,
 		&report.FirstName, &report.LastName, &imageURLsJSON, &report.Status, &report.CreatedAt,
 	)

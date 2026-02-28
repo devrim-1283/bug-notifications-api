@@ -24,9 +24,11 @@ type Config struct {
 	TLSCertFile       string
 	TLSKeyFile        string
 	TrustedProxies    []*net.IPNet
-	ImageAPIURL       string
-	ImageAPIKey       string
-	PortalDomain      string
+	ImageAPIURL        string
+	ImageAPIKey        string
+	PortalDomain       string
+	TurnstileSiteKey   string
+	TurnstileSecretKey string
 }
 
 // Load reads configuration from environment variables.
@@ -95,6 +97,8 @@ func Load() (*Config, error) {
 	cfg.ImageAPIKey = os.Getenv("IMAGE_API_KEY")
 
 	cfg.PortalDomain = strings.ToLower(strings.TrimSpace(os.Getenv("PORTAL_DOMAIN")))
+	cfg.TurnstileSiteKey = os.Getenv("TURNSTILE_SITE_KEY")
+	cfg.TurnstileSecretKey = os.Getenv("TURNSTILE_SECRET_KEY")
 
 	cfg.TLSCertFile = os.Getenv("TLS_CERT_FILE")
 	cfg.TLSKeyFile = os.Getenv("TLS_KEY_FILE")
