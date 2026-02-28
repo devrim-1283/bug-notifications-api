@@ -11,23 +11,22 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0c0c0e;--surface:#161619;--surface2:#1e1e22;--border:#2a2a2f;
-  --text:#e8e8ed;--muted:#7a7a85;--dim:#50505a;
-  --accent:#c4f04d;--accent-dim:#a8d43a;--accent-glow:rgba(196,240,77,.08);
-  --error:#ff6b6b;--error-bg:rgba(255,107,107,.08);
+  --bg:#f5f5f7;--surface:#fff;--surface2:#f0f0f2;--border:#e0e0e4;
+  --text:#1d1d1f;--muted:#6e6e73;--dim:#aeaeb2;
+  --accent:#0071e3;--accent-dim:#0060c0;--accent-glow:rgba(0,113,227,.06);
+  --error:#ff3b30;--error-bg:rgba(255,59,48,.06);
   --radius:8px;--font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
 }
 html,body{height:100%;overflow:hidden}
 body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.4;display:flex;align-items:center;justify-content:center}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(196,240,77,.03) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(196,240,77,.02) 0%,transparent 50%);pointer-events:none;z-index:0}
 
 /* Shell */
-.shell{position:relative;z-index:1;width:min(1060px,96vw);height:min(640px,92vh);display:grid;grid-template-columns:280px 1fr;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.shell{position:relative;z-index:1;width:min(1060px,96vw);height:min(640px,92vh);display:grid;grid-template-columns:280px 1fr;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,.06)}
 
 /* Left Panel */
 .panel-left{background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:28px 24px 20px}
 .brand{display:flex;align-items:center;gap:10px;margin-bottom:28px}
-.brand-icon{width:34px;height:34px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:var(--bg);font-size:.9rem;flex-shrink:0}
+.brand-icon{width:34px;height:34px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;flex-shrink:0}
 .brand h1{font-size:.9375rem;font-weight:600;letter-spacing:-.01em;color:var(--text)}
 .brand small{display:block;font-size:.6875rem;color:var(--muted);font-weight:400;margin-top:1px}
 
@@ -38,12 +37,25 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .type-btn.active{background:var(--accent-glow);color:var(--accent)}
 .type-btn.active i{color:var(--accent)}
 
-.panel-bottom{display:flex;flex-direction:column;gap:10px}
-.lang-trigger{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--muted);font:400 .75rem/1.3 var(--font);cursor:pointer;transition:all .15s;width:100%}
-.lang-trigger:hover{border-color:var(--dim);color:var(--text)}
+.panel-bottom{display:flex;flex-direction:column;gap:10px;position:relative}
+
+/* Language Dropdown */
+.lang-trigger{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--muted);font:400 .75rem/1.3 var(--font);cursor:pointer;transition:all .15s;width:100%}
+.lang-trigger:hover{border-color:var(--accent);color:var(--text)}
 .lang-trigger .flag{font-size:1rem;line-height:1}
 .lang-trigger span{flex:1;text-align:left}
-.lang-trigger i{font-size:.625rem;color:var(--dim)}
+.lang-trigger i{font-size:.625rem;color:var(--dim);transition:transform .2s}
+.lang-trigger.open i{transform:rotate(180deg)}
+
+.lang-dropdown{position:absolute;bottom:100%;left:0;right:0;margin-bottom:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 4px 16px rgba(0,0,0,.1);display:none;flex-direction:column;overflow:hidden;z-index:50}
+.lang-dropdown.open{display:flex}
+.lang-option{display:flex;align-items:center;gap:10px;padding:9px 14px;border:none;background:transparent;color:var(--text);font:400 .8125rem/1.3 var(--font);cursor:pointer;transition:all .1s;width:100%;text-align:left}
+.lang-option:hover{background:var(--surface2)}
+.lang-option.active{background:var(--accent-glow);color:var(--accent)}
+.lang-option .flag{font-size:1.125rem;line-height:1}
+.lang-option .lang-name{flex:1}
+.lang-option .check{color:var(--accent);font-size:.7rem;opacity:0}
+.lang-option.active .check{opacity:1}
 
 /* Right Panel */
 .panel-right{display:flex;flex-direction:column;overflow:hidden}
@@ -55,8 +67,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .step-pill.active{background:var(--accent)}
 .step-pill.done{background:var(--accent-dim);opacity:.4}
 
-.panel-body{flex:1;overflow-y:auto;padding:20px 28px;scrollbar-width:none}
-.panel-body::-webkit-scrollbar{display:none}
+.panel-body{flex:1;overflow-y:auto;padding:20px 28px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.panel-body::-webkit-scrollbar{width:4px}
+.panel-body::-webkit-scrollbar-track{background:transparent}
+.panel-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
 .panel-footer{padding:14px 28px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0}
 
@@ -74,13 +88,13 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 input,select,textarea{
   width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);
-  font:400 .8125rem/1.4 var(--font);background:var(--surface2);color:var(--text);
+  font:400 .8125rem/1.4 var(--font);background:var(--surface);color:var(--text);
   outline:none;transition:border-color .15s
 }
 input::placeholder,textarea::placeholder{color:var(--dim)}
 input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow)}
 textarea{resize:none;height:80px}
-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%237a7a85' d='M5 7L1 3h8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;cursor:pointer}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236e6e73' d='M5 7L1 3h8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;cursor:pointer}
 select:disabled{opacity:.5;cursor:not-allowed}
 
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -94,51 +108,37 @@ select:disabled{opacity:.5;cursor:not-allowed}
 .preview-grid{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .preview-item{position:relative;width:52px;height:52px;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
 .preview-item img{width:100%;height:100%;object-fit:cover}
-.preview-item button{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;border:none;background:rgba(0,0,0,.7);color:#fff;font-size:.5625rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.preview-item button{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;border:none;background:rgba(0,0,0,.5);color:#fff;font-size:.5625rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
 /* Turnstile */
 .turnstile-wrap{display:flex;justify-content:center;margin-bottom:8px}
 
 /* Buttons */
 .btn{padding:9px 20px;border:none;border-radius:var(--radius);font:500 .8125rem/1.3 var(--font);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
-.btn-primary{background:var(--accent);color:var(--bg);flex:1;justify-content:center}
+.btn-primary{background:var(--accent);color:#fff;flex:1;justify-content:center}
 .btn-primary:hover{background:var(--accent-dim)}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
-.btn-ghost:hover{border-color:var(--dim);color:var(--text)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--text)}
 
 .msg{padding:10px 14px;border-radius:var(--radius);font-size:.75rem;margin-top:8px;display:none}
-.msg.error{display:block;background:var(--error-bg);color:var(--error);border:1px solid rgba(255,107,107,.15)}
+.msg.error{display:block;background:var(--error-bg);color:var(--error);border:1px solid rgba(255,59,48,.12)}
 
-.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.15);border-top-color:var(--bg);border-radius:50%;animation:spin .5s linear infinite}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .5s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* Success */
 .success-screen{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:absolute;inset:0;background:var(--surface);z-index:10;padding:32px}
 .success-screen.visible{display:flex}
-.success-icon{width:64px;height:64px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:20px;animation:pop .4s cubic-bezier(.175,.885,.32,1.275)}
+.success-icon{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#34c759,#30d158);display:flex;align-items:center;justify-content:center;margin-bottom:20px;animation:pop .4s cubic-bezier(.175,.885,.32,1.275)}
 @keyframes pop{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
-.success-icon i{font-size:1.5rem;color:var(--bg)}
+.success-icon i{font-size:1.5rem;color:#fff}
 .success-screen h2{font-size:1.125rem;font-weight:600;margin-bottom:6px}
 .success-screen p{color:var(--muted);font-size:.8125rem;margin-bottom:20px;max-width:320px}
 
-/* Language Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;width:min(340px,90vw);animation:pop .2s ease}
-.modal h3{font-size:.875rem;font-weight:600;margin-bottom:16px;text-align:center}
-.lang-list{display:flex;flex-direction:column;gap:4px}
-.lang-option{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text);font:400 .8125rem/1.3 var(--font);cursor:pointer;transition:all .15s;width:100%}
-.lang-option:hover{border-color:var(--dim);background:var(--surface2)}
-.lang-option.active{border-color:var(--accent);background:var(--accent-glow)}
-.lang-option .flag{font-size:1.25rem;line-height:1}
-.lang-option .lang-name{flex:1;text-align:left}
-.lang-option .check{color:var(--accent);font-size:.75rem;opacity:0;transition:opacity .15s}
-.lang-option.active .check{opacity:1}
-
 /* Mobile */
 @media(max-width:700px){
-  .shell{grid-template-columns:1fr;height:100vh;height:100dvh;width:100vw;border-radius:0;border:none}
+  .shell{grid-template-columns:1fr;height:100vh;height:100dvh;width:100vw;border-radius:0;border:none;box-shadow:none}
   .panel-left{display:none}
   .mobile-bar{display:flex !important}
   .panel-header h2{font-size:.8125rem}
@@ -152,25 +152,15 @@ select:disabled{opacity:.5;cursor:not-allowed}
 .mobile-bar .mob-actions{display:flex;gap:8px;align-items:center}
 .mob-type-btn{background:transparent;border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--muted);font:500 .6875rem/1 var(--font);cursor:pointer;transition:all .15s}
 .mob-type-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
-.mob-lang-btn{background:transparent;border:1px solid var(--border);border-radius:6px;width:32px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.875rem;line-height:1;transition:all .15s}
-.mob-lang-btn:hover{border-color:var(--dim)}
+.mob-lang-btn{background:var(--surface);border:1px solid var(--border);border-radius:6px;width:32px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.875rem;line-height:1;transition:all .15s;position:relative}
+.mob-lang-btn:hover{border-color:var(--accent)}
+
+/* Mobile lang dropdown */
+.mob-lang-dropdown{position:absolute;top:100%;right:0;margin-top:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 4px 16px rgba(0,0,0,.1);display:none;flex-direction:column;overflow:hidden;z-index:50;min-width:160px}
+.mob-lang-dropdown.open{display:flex}
 </style>
 </head>
 <body>
-
-<!-- Language Modal -->
-<div class="modal-overlay" id="langModal">
-  <div class="modal">
-    <h3 id="langModalTitle">Dil</h3>
-    <div class="lang-list">
-      <button class="lang-option active" data-lang="tr"><span class="flag">&#127481;&#127479;</span><span class="lang-name">Turkce</span><i class="fa-solid fa-check check"></i></button>
-      <button class="lang-option" data-lang="en"><span class="flag">&#127468;&#127463;</span><span class="lang-name">English</span><i class="fa-solid fa-check check"></i></button>
-      <button class="lang-option" data-lang="de"><span class="flag">&#127465;&#127466;</span><span class="lang-name">Deutsch</span><i class="fa-solid fa-check check"></i></button>
-      <button class="lang-option" data-lang="ru"><span class="flag">&#127479;&#127482;</span><span class="lang-name">Russky</span><i class="fa-solid fa-check check"></i></button>
-      <button class="lang-option" data-lang="uk"><span class="flag">&#127482;&#127462;</span><span class="lang-name">Ukrainska</span><i class="fa-solid fa-check check"></i></button>
-    </div>
-  </div>
-</div>
 
 <div class="shell">
   <!-- Mobile top bar -->
@@ -182,7 +172,16 @@ select:disabled{opacity:.5;cursor:not-allowed}
     <div class="mob-actions">
       <button class="mob-type-btn active" data-type="bug" id="mobBugBtn"><i class="fa-solid fa-bug"></i></button>
       <button class="mob-type-btn" data-type="request" id="mobReqBtn"><i class="fa-solid fa-lightbulb"></i></button>
-      <button class="mob-lang-btn" id="mobLangBtn">&#127481;&#127479;</button>
+      <div style="position:relative">
+        <button class="mob-lang-btn" id="mobLangBtn">&#127481;&#127479;</button>
+        <div class="mob-lang-dropdown" id="mobLangDropdown">
+          <button class="lang-option active" data-lang="tr"><span class="flag">&#127481;&#127479;</span><span class="lang-name">Turkce</span><i class="fa-solid fa-check check"></i></button>
+          <button class="lang-option" data-lang="en"><span class="flag">&#127468;&#127463;</span><span class="lang-name">English</span><i class="fa-solid fa-check check"></i></button>
+          <button class="lang-option" data-lang="de"><span class="flag">&#127465;&#127466;</span><span class="lang-name">Deutsch</span><i class="fa-solid fa-check check"></i></button>
+          <button class="lang-option" data-lang="ru"><span class="flag">&#127479;&#127482;</span><span class="lang-name">Russky</span><i class="fa-solid fa-check check"></i></button>
+          <button class="lang-option" data-lang="uk"><span class="flag">&#127482;&#127462;</span><span class="lang-name">Ukrainska</span><i class="fa-solid fa-check check"></i></button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -206,10 +205,17 @@ select:disabled{opacity:.5;cursor:not-allowed}
     </div>
 
     <div class="panel-bottom">
-      <button class="lang-trigger" id="langTrigger" onclick="openLangModal()">
+      <div class="lang-dropdown" id="langDropdown">
+        <button class="lang-option active" data-lang="tr"><span class="flag">&#127481;&#127479;</span><span class="lang-name">Turkce</span><i class="fa-solid fa-check check"></i></button>
+        <button class="lang-option" data-lang="en"><span class="flag">&#127468;&#127463;</span><span class="lang-name">English</span><i class="fa-solid fa-check check"></i></button>
+        <button class="lang-option" data-lang="de"><span class="flag">&#127465;&#127466;</span><span class="lang-name">Deutsch</span><i class="fa-solid fa-check check"></i></button>
+        <button class="lang-option" data-lang="ru"><span class="flag">&#127479;&#127482;</span><span class="lang-name">Russky</span><i class="fa-solid fa-check check"></i></button>
+        <button class="lang-option" data-lang="uk"><span class="flag">&#127482;&#127462;</span><span class="lang-name">Ukrainska</span><i class="fa-solid fa-check check"></i></button>
+      </div>
+      <button class="lang-trigger" id="langTrigger">
         <span class="flag" id="currentFlag">&#127481;&#127479;</span>
         <span id="currentLangName">Turkce</span>
-        <i class="fa-solid fa-chevron-down"></i>
+        <i class="fa-solid fa-chevron-up"></i>
       </button>
     </div>
   </div>
@@ -324,7 +330,7 @@ select:disabled{opacity:.5;cursor:not-allowed}
       </div>
 
       <div class="panel-footer">
-        <button type="button" class="btn btn-ghost" id="btnPrev" style="display:none" onclick="prevStep()"><i class="fa-solid fa-arrow-left"></i></button>
+        <button type="button" class="btn btn-ghost" id="btnPrev" onclick="prevStep()" style="display:none"><i class="fa-solid fa-arrow-left"></i></button>
         <button type="button" class="btn btn-primary" id="btnNext" onclick="nextStep()"><span id="nextLabel">Devam</span> <i class="fa-solid fa-arrow-right"></i></button>
         <button type="submit" class="btn btn-primary" id="submitBtn" style="display:none" disabled><i class="fa-solid fa-paper-plane"></i> <span id="submitLabel">Gonder</span></button>
       </div>
@@ -340,14 +346,13 @@ const INJECTED_SITES=__SITES_JSON__;
 
 const FLAGS={tr:'\u{1F1F9}\u{1F1F7}',en:'\u{1F1EC}\u{1F1E7}',de:'\u{1F1E9}\u{1F1EA}',ru:'\u{1F1F7}\u{1F1FA}',uk:'\u{1F1FA}\u{1F1E6}'};
 const LANG_NAMES={tr:'Turkce',en:'English',de:'Deutsch',ru:'Russky',uk:'Ukrainska'};
-const LANG_MODAL_TITLES={tr:'Dil',en:'Language',de:'Sprache',ru:'Yazyk',uk:'Mova'};
 
 const T={
-  tr:{pageTitle:'Geri Bildirim',pageSubtitle:'Hata bildirin veya onerilerinizi paylasin',labelSite:'Site',labelTitle:'Baslik',labelCategory:'Kategori',labelDesc:'Aciklama',labelPageUrl:'Sayfa URL\'i',labelContact:'Iletisim Bilgileri (Opsiyonel)',labelFirstName:'Ad',labelLastName:'Soyad',labelContactType:'Iletisim Turu',labelContactValue:'Iletisim Degeri',labelImages:'Gorseller (Maks. 5)',dropText:'Dosyalari surukleyin veya tiklayin',submitBtn:'Gonder',sending:'Gonderiliyor...',errorGeneric:'Bir hata olustu. Lutfen tekrar deneyin.',autoDetected:'Otomatik algilandi',selectPlaceholder:'Secin...',catDesign:'Tasarim',catFunctionality:'Islevsellik',catPerformance:'Performans',catContent:'Icerik',catMobile:'Mobil',catSecurity:'Guvenlik',catOther:'Diger',optPhone:'Telefon',titlePlaceholder:'Kisa bir baslik yazin',descPlaceholder:'Detayli olarak aciklayin',maxImages:'En fazla 5 gorsel yuklenebilir',siteSelectPlaceholder:'Site secin...',typeBug:'Hata Bildirimi',typeRequest:'Oneriler',successTitle:'Tesekkurler!',successText:'Geri bildiriminiz basariyla gonderildi. En kisa surede degerlendirilecektir.',newReport:'Yeni Bildirim',turnstileError:'Lutfen robot dogrulamasini tamamlayin',next:'Devam',prev:'Geri',stepDetails:'Detaylar',stepContact:'Iletisim & Gorseller',stepSubmit:'Gonder'},
-  en:{pageTitle:'Feedback',pageSubtitle:'Report bugs or share your suggestions',labelSite:'Site',labelTitle:'Title',labelCategory:'Category',labelDesc:'Description',labelPageUrl:'Page URL',labelContact:'Contact Info (Optional)',labelFirstName:'First Name',labelLastName:'Last Name',labelContactType:'Contact Type',labelContactValue:'Contact Value',labelImages:'Screenshots (Max 5)',dropText:'Drag files here or click to browse',submitBtn:'Submit',sending:'Sending...',errorGeneric:'An error occurred. Please try again.',autoDetected:'Auto-detected',selectPlaceholder:'Select...',catDesign:'Design',catFunctionality:'Functionality',catPerformance:'Performance',catContent:'Content',catMobile:'Mobile',catSecurity:'Security',catOther:'Other',optPhone:'Phone',titlePlaceholder:'Write a short title',descPlaceholder:'Describe in detail',maxImages:'Maximum 5 images allowed',siteSelectPlaceholder:'Select a site...',typeBug:'Bug Report',typeRequest:'Suggestions',successTitle:'Thank you!',successText:'Your feedback has been submitted successfully. It will be reviewed shortly.',newReport:'New Report',turnstileError:'Please complete the verification',next:'Next',prev:'Back',stepDetails:'Details',stepContact:'Contact & Images',stepSubmit:'Submit'},
-  de:{pageTitle:'Feedback',pageSubtitle:'Melden Sie Fehler oder teilen Sie Vorschlage',labelSite:'Webseite',labelTitle:'Titel',labelCategory:'Kategorie',labelDesc:'Beschreibung',labelPageUrl:'Seiten-URL',labelContact:'Kontaktdaten (Optional)',labelFirstName:'Vorname',labelLastName:'Nachname',labelContactType:'Kontaktart',labelContactValue:'Kontaktwert',labelImages:'Bilder (Max. 5)',dropText:'Dateien hierher ziehen oder klicken',submitBtn:'Absenden',sending:'Wird gesendet...',errorGeneric:'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',autoDetected:'Automatisch erkannt',selectPlaceholder:'Auswahlen...',catDesign:'Design',catFunctionality:'Funktionalitat',catPerformance:'Leistung',catContent:'Inhalt',catMobile:'Mobil',catSecurity:'Sicherheit',catOther:'Sonstiges',optPhone:'Telefon',titlePlaceholder:'Kurzen Titel eingeben',descPlaceholder:'Beschreiben Sie es im Detail',maxImages:'Maximal 5 Bilder erlaubt',siteSelectPlaceholder:'Webseite auswahlen...',typeBug:'Fehlerbericht',typeRequest:'Vorschlage',successTitle:'Vielen Dank!',successText:'Ihr Feedback wurde erfolgreich gesendet. Es wird in Kurze bearbeitet.',newReport:'Neuer Bericht',turnstileError:'Bitte vervollstandigen Sie die Verifizierung',next:'Weiter',prev:'Zuruck',stepDetails:'Details',stepContact:'Kontakt & Bilder',stepSubmit:'Absenden'},
-  ru:{pageTitle:'Obratnaya svyaz',pageSubtitle:'Soobshchite ob oshibkah ili podelites predlozheniyami',labelSite:'Sayt',labelTitle:'Zagolovok',labelCategory:'Kategoriya',labelDesc:'Opisaniye',labelPageUrl:'URL stranitsy',labelContact:'Kontaktnaya informatsiya (Neobyzatelno)',labelFirstName:'Imya',labelLastName:'Familiya',labelContactType:'Tip kontakta',labelContactValue:'Kontaktnoye znacheniye',labelImages:'Izobrazheniya (Maks. 5)',dropText:'Peretashchite fayly syuda ili nazmite',submitBtn:'Otpravit',sending:'Otpravka...',errorGeneric:'Proizoshla oshibka. Poprobuyete snova.',autoDetected:'Opredeleno avtomaticheski',selectPlaceholder:'Vybrat...',catDesign:'Dizayn',catFunctionality:'Funktsionalnost',catPerformance:'Proizvoditelnost',catContent:'Kontent',catMobile:'Mobilniy',catSecurity:'Bezopasnost',catOther:'Drugoye',optPhone:'Telefon',titlePlaceholder:'Napishite korotkiy zagolovok',descPlaceholder:'Podrobno opishite',maxImages:'Maksimum 5 izobrazheniy',siteSelectPlaceholder:'Vybrat sayt...',typeBug:'Otchet ob oshibke',typeRequest:'Predlozheniya',successTitle:'Spasibo!',successText:'Vash otzyv uspeshno otpravlen. On budet rassmotren v blizhaysheye vremya.',newReport:'Novyy otchet',turnstileError:'Pozhaluysta, proyditye proverku',next:'Dalee',prev:'Nazad',stepDetails:'Detali',stepContact:'Kontakt i izobrazheniya',stepSubmit:'Otpravit'},
-  uk:{pageTitle:"Zvorotniy zv'yazok",pageSubtitle:'Povidomte pro pomylky abo podilitsya propozytsiyamy',labelSite:'Sayt',labelTitle:'Zagolovok',labelCategory:'Kategoriya',labelDesc:'Opys',labelPageUrl:'URL storinky',labelContact:"Kontaktna informatsiya (Neobov'yazkovo)",labelFirstName:"Im'ya",labelLastName:'Prizvyshche',labelContactType:'Typ kontaktu',labelContactValue:'Kontaktne znachennya',labelImages:'Zobrazhennya (Maks. 5)',dropText:'Peretagnit fayly syudy abo natysnit',submitBtn:'Vidpravyty',sending:'Vidpravka...',errorGeneric:'Stalasya pomylka. Bud laska, sprobujte shche raz.',autoDetected:'Vyznacheno avtomatychno',selectPlaceholder:'Obraty...',catDesign:'Dyzayn',catFunctionality:'Funktsionalnist',catPerformance:'Produktyvnist',catContent:'Kontent',catMobile:'Mobilnyy',catSecurity:'Bezpeka',catOther:'Inshe',optPhone:'Telefon',titlePlaceholder:'Napyshit korotkyy zagolovok',descPlaceholder:'Detalno opishit',maxImages:'Maksymum 5 zobrazhen',siteSelectPlaceholder:'Obraty sayt...',typeBug:'Zvit pro pomylku',typeRequest:'Propozytsii',successTitle:'Dyakuyemo!',successText:'Vash vidguk uspishno vidpravleno. Vin bude rozglyanutiy najblyzhchym chasom.',newReport:'Novyy zvit',turnstileError:"Bud laska, proydit' perevirku",next:'Dali',prev:'Nazad',stepDetails:'Detali',stepContact:'Kontakt i zobrazhennya',stepSubmit:'Vidpravyty'}
+  tr:{pageTitle:'Geri Bildirim',pageSubtitle:'Hata bildirin veya onerilerinizi paylasin',labelSite:'Site',labelTitle:'Baslik',labelCategory:'Kategori',labelDesc:'Aciklama',labelPageUrl:'Sayfa URL\'i',labelContact:'Iletisim Bilgileri (Opsiyonel)',labelFirstName:'Ad',labelLastName:'Soyad',labelContactType:'Iletisim Turu',labelContactValue:'Iletisim Degeri',labelImages:'Gorseller (Maks. 5)',dropText:'Dosyalari surukleyin veya tiklayin',submitBtn:'Gonder',sending:'Gonderiliyor...',errorGeneric:'Bir hata olustu. Lutfen tekrar deneyin.',autoDetected:'Otomatik algilandi',selectPlaceholder:'Secin...',catDesign:'Tasarim',catFunctionality:'Islevsellik',catPerformance:'Performans',catContent:'Icerik',catMobile:'Mobil',catSecurity:'Guvenlik',catOther:'Diger',optPhone:'Telefon',titlePlaceholder:'Kisa bir baslik yazin',descPlaceholder:'Detayli olarak aciklayin',maxImages:'En fazla 5 gorsel yuklenebilir',siteSelectPlaceholder:'Site secin...',typeBug:'Hata Bildirimi',typeRequest:'Oneriler',successTitle:'Tesekkurler!',successText:'Geri bildiriminiz basariyla gonderildi. En kisa surede degerlendirilecektir.',newReport:'Yeni Bildirim',next:'Devam',stepDetails:'Detaylar',stepContact:'Iletisim & Gorseller',stepSubmit:'Gonder'},
+  en:{pageTitle:'Feedback',pageSubtitle:'Report bugs or share your suggestions',labelSite:'Site',labelTitle:'Title',labelCategory:'Category',labelDesc:'Description',labelPageUrl:'Page URL',labelContact:'Contact Info (Optional)',labelFirstName:'First Name',labelLastName:'Last Name',labelContactType:'Contact Type',labelContactValue:'Contact Value',labelImages:'Screenshots (Max 5)',dropText:'Drag files here or click to browse',submitBtn:'Submit',sending:'Sending...',errorGeneric:'An error occurred. Please try again.',autoDetected:'Auto-detected',selectPlaceholder:'Select...',catDesign:'Design',catFunctionality:'Functionality',catPerformance:'Performance',catContent:'Content',catMobile:'Mobile',catSecurity:'Security',catOther:'Other',optPhone:'Phone',titlePlaceholder:'Write a short title',descPlaceholder:'Describe in detail',maxImages:'Maximum 5 images allowed',siteSelectPlaceholder:'Select a site...',typeBug:'Bug Report',typeRequest:'Suggestions',successTitle:'Thank you!',successText:'Your feedback has been submitted successfully. It will be reviewed shortly.',newReport:'New Report',next:'Next',stepDetails:'Details',stepContact:'Contact & Images',stepSubmit:'Submit'},
+  de:{pageTitle:'Feedback',pageSubtitle:'Melden Sie Fehler oder teilen Sie Vorschlage',labelSite:'Webseite',labelTitle:'Titel',labelCategory:'Kategorie',labelDesc:'Beschreibung',labelPageUrl:'Seiten-URL',labelContact:'Kontaktdaten (Optional)',labelFirstName:'Vorname',labelLastName:'Nachname',labelContactType:'Kontaktart',labelContactValue:'Kontaktwert',labelImages:'Bilder (Max. 5)',dropText:'Dateien hierher ziehen oder klicken',submitBtn:'Absenden',sending:'Wird gesendet...',errorGeneric:'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',autoDetected:'Automatisch erkannt',selectPlaceholder:'Auswahlen...',catDesign:'Design',catFunctionality:'Funktionalitat',catPerformance:'Leistung',catContent:'Inhalt',catMobile:'Mobil',catSecurity:'Sicherheit',catOther:'Sonstiges',optPhone:'Telefon',titlePlaceholder:'Kurzen Titel eingeben',descPlaceholder:'Beschreiben Sie es im Detail',maxImages:'Maximal 5 Bilder erlaubt',siteSelectPlaceholder:'Webseite auswahlen...',typeBug:'Fehlerbericht',typeRequest:'Vorschlage',successTitle:'Vielen Dank!',successText:'Ihr Feedback wurde erfolgreich gesendet. Es wird in Kurze bearbeitet.',newReport:'Neuer Bericht',next:'Weiter',stepDetails:'Details',stepContact:'Kontakt & Bilder',stepSubmit:'Absenden'},
+  ru:{pageTitle:'Obratnaya svyaz',pageSubtitle:'Soobshchite ob oshibkah ili podelites predlozheniyami',labelSite:'Sayt',labelTitle:'Zagolovok',labelCategory:'Kategoriya',labelDesc:'Opisaniye',labelPageUrl:'URL stranitsy',labelContact:'Kontaktnaya informatsiya (Neobyzatelno)',labelFirstName:'Imya',labelLastName:'Familiya',labelContactType:'Tip kontakta',labelContactValue:'Kontaktnoye znacheniye',labelImages:'Izobrazheniya (Maks. 5)',dropText:'Peretashchite fayly syuda ili nazmite',submitBtn:'Otpravit',sending:'Otpravka...',errorGeneric:'Proizoshla oshibka. Poprobuyete snova.',autoDetected:'Opredeleno avtomaticheski',selectPlaceholder:'Vybrat...',catDesign:'Dizayn',catFunctionality:'Funktsionalnost',catPerformance:'Proizvoditelnost',catContent:'Kontent',catMobile:'Mobilniy',catSecurity:'Bezopasnost',catOther:'Drugoye',optPhone:'Telefon',titlePlaceholder:'Napishite korotkiy zagolovok',descPlaceholder:'Podrobno opishite',maxImages:'Maksimum 5 izobrazheniy',siteSelectPlaceholder:'Vybrat sayt...',typeBug:'Otchet ob oshibke',typeRequest:'Predlozheniya',successTitle:'Spasibo!',successText:'Vash otzyv uspeshno otpravlen. On budet rassmotren v blizhaysheye vremya.',newReport:'Novyy otchet',next:'Dalee',stepDetails:'Detali',stepContact:'Kontakt i izobrazheniya',stepSubmit:'Otpravit'},
+  uk:{pageTitle:"Zvorotniy zv'yazok",pageSubtitle:'Povidomte pro pomylky abo podilitsya propozytsiyamy',labelSite:'Sayt',labelTitle:'Zagolovok',labelCategory:'Kategoriya',labelDesc:'Opys',labelPageUrl:'URL storinky',labelContact:"Kontaktna informatsiya (Neobov'yazkovo)",labelFirstName:"Im'ya",labelLastName:'Prizvyshche',labelContactType:'Typ kontaktu',labelContactValue:'Kontaktne znachennya',labelImages:'Zobrazhennya (Maks. 5)',dropText:'Peretagnit fayly syudy abo natysnit',submitBtn:'Vidpravyty',sending:'Vidpravka...',errorGeneric:'Stalasya pomylka. Bud laska, sprobujte shche raz.',autoDetected:'Vyznacheno avtomatychno',selectPlaceholder:'Obraty...',catDesign:'Dyzayn',catFunctionality:'Funktsionalnist',catPerformance:'Produktyvnist',catContent:'Kontent',catMobile:'Mobilnyy',catSecurity:'Bezpeka',catOther:'Inshe',optPhone:'Telefon',titlePlaceholder:'Napyshit korotkyy zagolovok',descPlaceholder:'Detalno opishit',maxImages:'Maksymum 5 zobrazhen',siteSelectPlaceholder:'Obraty sayt...',typeBug:'Zvit pro pomylku',typeRequest:'Propozytsii',successTitle:'Dyakuyemo!',successText:'Vash vidguk uspishno vidpravleno. Vin bude rozglyanutiy najblyzhchym chasom.',newReport:'Novyy zvit',next:'Dali',stepDetails:'Detali',stepContact:'Kontakt i zobrazhennya',stepSubmit:'Vidpravyty'}
 };
 
 let currentLang='tr',sites=[],selectedFiles=[],autoDetectedSite=false,currentReportType='bug',turnstileWidgetId=null,currentStep=0;
@@ -358,9 +363,19 @@ function detectLang(){
   if(n.startsWith('en'))return'en';if(n.startsWith('de'))return'de';if(n.startsWith('ru'))return'ru';if(n.startsWith('uk'))return'uk';return'tr';
 }
 
-/* Language */
-function openLangModal(){document.getElementById('langModal').classList.add('open')}
-function closeLangModal(){document.getElementById('langModal').classList.remove('open')}
+/* Language dropdown */
+function toggleLangDropdown(id){
+  const dd=document.getElementById(id);
+  const isOpen=dd.classList.contains('open');
+  closeAllDropdowns();
+  if(!isOpen) dd.classList.add('open');
+  if(id==='langDropdown') document.getElementById('langTrigger').classList.toggle('open',!isOpen);
+}
+function closeAllDropdowns(){
+  document.getElementById('langDropdown').classList.remove('open');
+  document.getElementById('mobLangDropdown').classList.remove('open');
+  document.getElementById('langTrigger').classList.remove('open');
+}
 
 function setLang(lang){
   currentLang=lang;
@@ -396,7 +411,6 @@ function setLang(lang){
   document.getElementById('optSecurity').textContent=t.catSecurity;
   document.getElementById('optOther').textContent=t.catOther;
   document.getElementById('optPhone').textContent=t.optPhone;
-  document.getElementById('langModalTitle').textContent=LANG_MODAL_TITLES[lang];
 
   if(autoDetectedSite){document.getElementById('siteNote').textContent=t.autoDetected}
 
@@ -408,7 +422,7 @@ function setLang(lang){
 
   updateSiteSelect();
   updateStepUI();
-  closeLangModal();
+  closeAllDropdowns();
 
   const btn=document.getElementById('submitBtn');
   if(!btn.innerHTML.includes('spinner')){
@@ -416,12 +430,44 @@ function setLang(lang){
   }
 }
 
-/* Report type */
+/* Report type — clears form when switching */
 function setReportType(type){
+  if(currentReportType===type) return;
   currentReportType=type;
   document.getElementById('reportTypeInput').value=type;
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.toggle('active',b.dataset.type===type));
   document.querySelectorAll('.mob-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.type===type));
+
+  // Clear form fields
+  document.getElementById('bugForm').reset();
+  document.getElementById('reportTypeInput').value=type;
+  document.getElementById('titleInput').value='';
+  document.getElementById('descInput').value='';
+  document.getElementById('categorySelect').value='';
+  document.getElementById('pageUrlInput').value='';
+  document.getElementById('firstNameInput').value='';
+  document.getElementById('lastNameInput').value='';
+  document.getElementById('contactTypeSelect').value='';
+  document.getElementById('contactValueInput').value='';
+  selectedFiles=[];
+  renderPreviews();
+  currentStep=0;
+  updateStepUI();
+
+  // Restore auto-detected site
+  if(autoDetectedSite){
+    document.getElementById('siteSelect').disabled=true;
+    matchReferrer();
+  }
+
+  // Reset Turnstile
+  if(turnstileWidgetId!==null){
+    turnstile.reset(turnstileWidgetId);
+    document.getElementById('submitBtn').disabled=true;
+  }
+
+  const m=document.getElementById('resultMsg');
+  m.className='msg';m.style.display='none';
 }
 
 /* Steps */
@@ -435,9 +481,29 @@ function updateStepUI(){
     p.classList.toggle('active',s===currentStep);
     p.classList.toggle('done',s<currentStep);
   });
-  document.getElementById('btnPrev').style.display=currentStep>0?'':'none';
-  document.getElementById('btnNext').style.display=currentStep<TOTAL_STEPS-1?'':'none';
-  document.getElementById('submitBtn').style.display=currentStep===TOTAL_STEPS-1?'':'none';
+
+  const btnPrev=document.getElementById('btnPrev');
+  const btnNext=document.getElementById('btnNext');
+  const btnSubmit=document.getElementById('submitBtn');
+
+  if(currentStep>0){
+    btnPrev.style.display='inline-flex';
+  } else {
+    btnPrev.style.display='none';
+  }
+
+  if(currentStep<TOTAL_STEPS-1){
+    btnNext.style.display='inline-flex';
+  } else {
+    btnNext.style.display='none';
+  }
+
+  if(currentStep===TOTAL_STEPS-1){
+    btnSubmit.style.display='inline-flex';
+  } else {
+    btnSubmit.style.display='none';
+  }
+
   document.getElementById('nextLabel').textContent=t.next;
 }
 
@@ -451,7 +517,10 @@ function nextStep(){
   }
   if(currentStep<TOTAL_STEPS-1){currentStep++;updateStepUI()}
 }
-function prevStep(){if(currentStep>0){currentStep--;updateStepUI()}}
+
+function prevStep(){
+  if(currentStep>0){currentStep--;updateStepUI()}
+}
 
 /* Sites */
 function updateSiteSelect(){
@@ -492,9 +561,13 @@ function addFiles(files){
 
 /* Turnstile */
 function initTurnstile(){
-  if(!TURNSTILE_SITE_KEY||TURNSTILE_SITE_KEY==='__TURNSTILE_SITE_KEY__'){document.getElementById('submitBtn').disabled=false;return}
+  if(!TURNSTILE_SITE_KEY||TURNSTILE_SITE_KEY==='__TURNSTILE_SITE_KEY__'){
+    document.getElementById('submitBtn').disabled=true;
+    document.getElementById('turnstileWrap').innerHTML='<p style="color:var(--error);font-size:.75rem">Turnstile not configured</p>';
+    return;
+  }
   turnstileWidgetId=turnstile.render(document.getElementById('turnstileWrap'),{
-    sitekey:TURNSTILE_SITE_KEY,theme:'dark',
+    sitekey:TURNSTILE_SITE_KEY,theme:'light',
     callback:()=>{document.getElementById('submitBtn').disabled=false},
     'expired-callback':()=>{document.getElementById('submitBtn').disabled=true},
     'error-callback':()=>{document.getElementById('submitBtn').disabled=true}
@@ -506,7 +579,11 @@ function showSuccess(){document.getElementById('bugForm').style.display='none';d
 function resetForm(){
   document.getElementById('successScreen').classList.remove('visible');
   document.getElementById('bugForm').style.display='';document.getElementById('bugForm').reset();
-  selectedFiles=[];renderPreviews();setReportType('bug');currentStep=0;updateStepUI();
+  selectedFiles=[];renderPreviews();currentReportType='bug';
+  document.getElementById('reportTypeInput').value='bug';
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.toggle('active',b.dataset.type==='bug'));
+  document.querySelectorAll('.mob-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.type==='bug'));
+  currentStep=0;updateStepUI();
   if(autoDetectedSite){document.getElementById('siteSelect').disabled=true;matchReferrer()}
   if(turnstileWidgetId!==null){turnstile.reset(turnstileWidgetId);document.getElementById('submitBtn').disabled=true}
   const m=document.getElementById('resultMsg');m.className='msg';m.style.display='none';
@@ -534,13 +611,13 @@ async function submitForm(e){
     const r=await fetch('/v1/reports',{method:'POST',headers:{'X-API-Key':API_KEY},body:fd});const d=await r.json();
     if(r.ok){showSuccess()}else{
       msg.className='msg error';msg.textContent=d.error||t.errorGeneric;msg.style.display='block';
-      btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> <span id="submitLabel">'+t.submitBtn+'</span>';
-      if(turnstileWidgetId!==null){turnstile.reset(turnstileWidgetId);btn.disabled=true}
+      btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> <span id="submitLabel">'+t.submitBtn+'</span>';
+      if(turnstileWidgetId!==null){turnstile.reset(turnstileWidgetId);btn.disabled=true}else{btn.disabled=false}
     }
   }catch(err){
     msg.className='msg error';msg.textContent=t.errorGeneric;msg.style.display='block';
-    btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> <span id="submitLabel">'+t.submitBtn+'</span>';
-    if(turnstileWidgetId!==null){turnstile.reset(turnstileWidgetId);btn.disabled=true}
+    btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> <span id="submitLabel">'+t.submitBtn+'</span>';
+    if(turnstileWidgetId!==null){turnstile.reset(turnstileWidgetId);btn.disabled=true}else{btn.disabled=false}
   }
 }
 
@@ -555,16 +632,28 @@ document.addEventListener('DOMContentLoaded',()=>{
   dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
   dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');addFiles(e.dataTransfer.files)});
 
-  document.querySelectorAll('.lang-option').forEach(o=>o.addEventListener('click',()=>setLang(o.dataset.lang)));
-  document.getElementById('langModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeLangModal()});
-  document.getElementById('mobLangBtn').addEventListener('click',openLangModal);
+  // Desktop lang dropdown
+  document.getElementById('langTrigger').addEventListener('click',()=>toggleLangDropdown('langDropdown'));
+  document.querySelectorAll('#langDropdown .lang-option').forEach(o=>o.addEventListener('click',()=>setLang(o.dataset.lang)));
 
+  // Mobile lang dropdown
+  document.getElementById('mobLangBtn').addEventListener('click',e=>{e.stopPropagation();toggleLangDropdown('mobLangDropdown')});
+  document.querySelectorAll('#mobLangDropdown .lang-option').forEach(o=>o.addEventListener('click',()=>setLang(o.dataset.lang)));
+
+  // Close dropdowns on outside click
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('.panel-bottom')&&!e.target.closest('.mob-lang-btn')&&!e.target.closest('.mob-lang-dropdown')){
+      closeAllDropdowns();
+    }
+  });
+
+  // Mobile type buttons
   document.getElementById('mobBugBtn').addEventListener('click',()=>setReportType('bug'));
   document.getElementById('mobReqBtn').addEventListener('click',()=>setReportType('request'));
 
+  // Turnstile — submit stays disabled until success
   if(typeof turnstile!=='undefined'){initTurnstile()}else{
     const ch=setInterval(()=>{if(typeof turnstile!=='undefined'){clearInterval(ch);initTurnstile()}},100);
-    setTimeout(()=>{clearInterval(ch);if(typeof turnstile==='undefined')document.getElementById('submitBtn').disabled=false},5000);
   }
 });
 </script>
