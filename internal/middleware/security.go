@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"crypto/subtle"
 	"log/slog"
 	"net"
 	"net/http"
@@ -10,10 +9,6 @@ import (
 
 	"github.com/devrimsoft/bug-notifications-api/internal/config"
 )
-
-type contextKey string
-
-const SiteIDKey contextKey = "site_id"
 
 // SecureHeaders adds defense-in-depth security headers to every response.
 func SecureHeaders() func(http.Handler) http.Handler {
@@ -60,62 +55,9 @@ func RequireHTTPS() func(http.Handler) http.Handler {
 	}
 }
 
-// APIKeyAuth validates the X-API-Key header and ensures it matches a registered site.
-// It also cross-checks that the Origin/Referer domain matches the site associated with the key.
-func APIKeyAuth(cfg *config.Config) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			apiKey := r.Header.Get("X-API-Key")
-			if apiKey == "" {
-				writeJSON(w, http.StatusUnauthorized, map[string]string{
-					"error": "missing X-API-Key header",
-					"code":  "MISSING_API_KEY",
-				})
-				return
-			}
-
-			site := cfg.FindSiteByAPIKey(apiKey)
-			if site == nil {
-				writeJSON(w, http.StatusForbidden, map[string]string{
-					"error": "invalid API key",
-					"code":  "INVALID_API_KEY",
-				})
-				return
-			}
-
-			// Cross-check: the request origin must match the site domain for this key
-			originDomain := extractOriginDomain(r)
-			if originDomain == "" {
-				writeJSON(w, http.StatusForbidden, map[string]string{
-					"error": "request origin could not be determined",
-					"code":  "MISSING_ORIGIN",
-				})
-				return
-			}
-
-			if !domainMatch(originDomain, site.Domain) {
-				slog.Warn("API key / origin mismatch",
-					"api_key_domain", site.Domain,
-					"origin_domain", originDomain,
-				)
-				writeJSON(w, http.StatusForbidden, map[string]string{
-					"error": "API key does not match request origin",
-					"code":  "ORIGIN_MISMATCH",
-				})
-				return
-			}
-
-			// Store site_id (domain) in context
-			ctx := r.Context()
-			ctx = withValue(ctx, SiteIDKey, site.Domain)
-			next.ServeHTTP(w, r.WithContext(ctx))
-		})
-	}
-}
-
 // BrowserOnly is a casual-abuse filter, NOT a security boundary.
 // A determined attacker can spoof all checked headers. Real security comes from
-// API key + origin cross-check in APIKeyAuth and CORS enforcement.
+// CORS enforcement and Turnstile bot verification.
 // This middleware only raises the bar for lazy/accidental misuse.
 func BrowserOnly() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -177,10 +119,14 @@ func BrowserOnly() func(http.Handler) http.Handler {
 }
 
 // CORSMiddleware handles CORS preflight and response headers.
-// Allows origins from registered site domains and their subdomains.
-// e.g. if "example.com" is registered, "staging.example.com" is also allowed.
+// Allows origins from the portal domain and its subdomains.
 func CORSMiddleware(cfg *config.Config) func(http.Handler) http.Handler {
-	domains := cfg.AllowedDomains()
+	// Build allowed domains list: portal domain + all site domains
+	var domains []string
+	if cfg.PortalDomain != "" {
+		domains = append(domains, cfg.PortalDomain)
+	}
+	domains = append(domains, cfg.Sites...)
 
 	isAllowed := func(origin string) bool {
 		u, err := url.Parse(origin)
@@ -203,7 +149,7 @@ func CORSMiddleware(cfg *config.Config) func(http.Handler) http.Handler {
 			if origin != "" && isAllowed(origin) {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
 				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-API-Key")
+				w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 				w.Header().Set("Access-Control-Max-Age", "86400")
 				w.Header().Set("Vary", "Origin")
 			}
@@ -241,31 +187,4 @@ func isLoopback(remoteAddr string) bool {
 	}
 	ip := net.ParseIP(host)
 	return ip != nil && ip.IsLoopback()
-}
-
-func extractOriginDomain(r *http.Request) string {
-	origin := r.Header.Get("Origin")
-	if origin != "" {
-		if u, err := url.Parse(origin); err == nil && u.Hostname() != "" {
-			return strings.ToLower(u.Hostname())
-		}
-	}
-	referer := r.Header.Get("Referer")
-	if referer != "" {
-		if u, err := url.Parse(referer); err == nil && u.Hostname() != "" {
-			return strings.ToLower(u.Hostname())
-		}
-	}
-	return ""
-}
-
-// domainMatch checks if got matches want exactly or is a subdomain of want.
-// e.g. domainMatch("staging.example.com", "example.com") returns true.
-func domainMatch(got, want string) bool {
-	if subtle.ConstantTimeCompare([]byte(got), []byte(want)) == 1 {
-		return true
-	}
-	// Subdomain check: got must end with ".want"
-	suffix := "." + want
-	return len(got) > len(suffix) && strings.HasSuffix(got, suffix)
 }

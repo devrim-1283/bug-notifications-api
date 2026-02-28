@@ -1,13 +1,10 @@
 import type { ReportFormData, ReportResponse, ErrorResponse } from './types';
-import { getConfig } from './config';
 
 export async function submitReport(
   data: ReportFormData,
   images: File[],
   turnstileToken: string
 ): Promise<ReportResponse> {
-  const config = getConfig();
-
   const fd = new FormData();
   fd.append('site_id', data.siteId);
   fd.append('report_type', data.reportType);
@@ -30,7 +27,6 @@ export async function submitReport(
 
   const res = await fetch('/v1/reports', {
     method: 'POST',
-    headers: { 'X-API-Key': config.apiKey },
     body: fd,
   });
 

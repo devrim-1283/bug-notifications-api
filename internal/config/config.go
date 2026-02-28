@@ -8,26 +8,20 @@ import (
 	"strings"
 )
 
-// SiteConfig holds the allowed domain and its API key.
-type SiteConfig struct {
-	Domain string
-	APIKey string
-}
-
 type Config struct {
 	Port              int
 	RedisURL          string
 	DatabaseURL       string
-	Sites             []SiteConfig
+	Sites             []string // allowed site domains
 	RateLimitRPS      int
 	WorkerConcurrency int
 	TLSCertFile       string
 	TLSKeyFile        string
 	TrustedProxies    []*net.IPNet
-	ImageAPIURL        string
-	ImageAPIKey        string
-	PortalDomain       string
-	TurnstileSiteKey   string
+	ImageAPIURL       string
+	ImageAPIKey       string
+	PortalDomain      string
+	TurnstileSiteKey  string
 	TurnstileSecretKey string
 }
 
@@ -57,24 +51,17 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("DATABASE_URL is required")
 	}
 
-	// SITE_KEYS format: "example.com:secret123,other.com:key456"
-	siteKeys := os.Getenv("SITE_KEYS")
-	if siteKeys == "" {
-		return nil, fmt.Errorf("SITE_KEYS is required")
+	// ALLOWED_SITES format: "example.com,other.com,shop.example.com"
+	allowedSites := os.Getenv("ALLOWED_SITES")
+	if allowedSites == "" {
+		return nil, fmt.Errorf("ALLOWED_SITES is required")
 	}
-	for _, pair := range strings.Split(siteKeys, ",") {
-		pair = strings.TrimSpace(pair)
-		if pair == "" {
+	for _, domain := range strings.Split(allowedSites, ",") {
+		domain = strings.ToLower(strings.TrimSpace(domain))
+		if domain == "" {
 			continue
 		}
-		parts := strings.SplitN(pair, ":", 2)
-		if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-			return nil, fmt.Errorf("invalid SITE_KEYS entry: %q (expected domain:key)", pair)
-		}
-		cfg.Sites = append(cfg.Sites, SiteConfig{
-			Domain: strings.ToLower(strings.TrimSpace(parts[0])),
-			APIKey: strings.TrimSpace(parts[1]),
-		})
+		cfg.Sites = append(cfg.Sites, domain)
 	}
 
 	if r := os.Getenv("RATE_LIMIT_RPS"); r != "" {
@@ -132,32 +119,42 @@ func Load() (*Config, error) {
 	return cfg, nil
 }
 
-// AllowedDomains returns a list of all registered domains.
+// AllowedDomains returns a list of all registered site domains.
 func (c *Config) AllowedDomains() []string {
-	domains := make([]string, len(c.Sites))
-	for i, s := range c.Sites {
-		domains[i] = s.Domain
-	}
-	return domains
+	return c.Sites
 }
 
 // AllowedOrigins returns full origin URLs (https://domain) for CORS.
+// Includes the portal domain if configured.
 func (c *Config) AllowedOrigins() []string {
-	origins := make([]string, len(c.Sites))
-	for i, s := range c.Sites {
-		origins[i] = "https://" + s.Domain
+	seen := make(map[string]bool)
+	var origins []string
+	for _, d := range c.Sites {
+		o := "https://" + d
+		if !seen[o] {
+			origins = append(origins, o)
+			seen[o] = true
+		}
+	}
+	if c.PortalDomain != "" {
+		o := "https://" + c.PortalDomain
+		if !seen[o] {
+			origins = append(origins, o)
+			seen[o] = true
+		}
 	}
 	return origins
 }
 
-// FindSiteByAPIKey returns the SiteConfig matching the given API key, or nil.
-func (c *Config) FindSiteByAPIKey(apiKey string) *SiteConfig {
-	for i := range c.Sites {
-		if c.Sites[i].APIKey == apiKey {
-			return &c.Sites[i]
+// FindSiteByDomain returns the domain if it's in the allowed sites list, or empty string.
+func (c *Config) FindSiteByDomain(domain string) string {
+	domain = strings.ToLower(domain)
+	for _, d := range c.Sites {
+		if d == domain {
+			return d
 		}
 	}
-	return nil
+	return ""
 }
 
 // TLSEnabled returns true if TLS certificate and key files are configured.
@@ -165,37 +162,12 @@ func (c *Config) TLSEnabled() bool {
 	return c.TLSCertFile != "" && c.TLSKeyFile != ""
 }
 
-// FindSiteByDomain returns the SiteConfig matching the given domain, or nil.
-func (c *Config) FindSiteByDomain(domain string) *SiteConfig {
-	domain = strings.ToLower(domain)
-	for i := range c.Sites {
-		if c.Sites[i].Domain == domain {
-			return &c.Sites[i]
-		}
-	}
-	return nil
-}
-
 // IsPortal returns true if the given domain matches the portal domain.
 func (c *Config) IsPortal(domain string) bool {
 	return c.PortalDomain != "" && strings.ToLower(domain) == c.PortalDomain
 }
 
-// ReportableDomains returns all registered domains except the portal domain.
+// ReportableDomains returns all registered site domains (portal is not in Sites).
 func (c *Config) ReportableDomains() []string {
-	domains := make([]string, 0)
-	for _, s := range c.Sites {
-		if !c.IsPortal(s.Domain) {
-			domains = append(domains, s.Domain)
-		}
-	}
-	return domains
-}
-
-// PortalSite returns the SiteConfig for the portal domain, or nil.
-func (c *Config) PortalSite() *SiteConfig {
-	if c.PortalDomain == "" {
-		return nil
-	}
-	return c.FindSiteByDomain(c.PortalDomain)
+	return c.Sites
 }

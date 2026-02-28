@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/devrimsoft/bug-notifications-api/internal/config"
-	"github.com/devrimsoft/bug-notifications-api/internal/middleware"
 	"github.com/devrimsoft/bug-notifications-api/internal/model"
 	"github.com/devrimsoft/bug-notifications-api/internal/queue"
 	"github.com/devrimsoft/bug-notifications-api/internal/validate"
@@ -111,30 +110,20 @@ func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Determine site_id: portal mode lets client choose; normal mode overrides from auth context
-	siteID := middleware.GetSiteID(r.Context())
-	if siteID != "" {
-		if h.cfg.IsPortal(siteID) {
-			// Portal mode: validate that client-supplied site_id is a registered reportable domain
-			if req.SiteID == "" {
-				writeJSON(w, http.StatusBadRequest, model.ErrorResponse{
-					Error: "site_id is required",
-					Code:  "MISSING_SITE_ID",
-				})
-				return
-			}
-			target := h.cfg.FindSiteByDomain(req.SiteID)
-			if target == nil || h.cfg.IsPortal(target.Domain) {
-				writeJSON(w, http.StatusBadRequest, model.ErrorResponse{
-					Error: "invalid site_id",
-					Code:  "INVALID_SITE_ID",
-				})
-				return
-			}
-		} else {
-			// Normal mode: override site_id from authenticated context (don't trust client)
-			req.SiteID = siteID
-		}
+	// Validate site_id against allowed sites
+	if req.SiteID == "" {
+		writeJSON(w, http.StatusBadRequest, model.ErrorResponse{
+			Error: "site_id is required",
+			Code:  "MISSING_SITE_ID",
+		})
+		return
+	}
+	if h.cfg.FindSiteByDomain(req.SiteID) == "" {
+		writeJSON(w, http.StatusBadRequest, model.ErrorResponse{
+			Error: "invalid site_id",
+			Code:  "INVALID_SITE_ID",
+		})
+		return
 	}
 
 	// Validate
@@ -227,7 +216,7 @@ func (h *Handler) CreateReport(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// ListSites handles GET /v1/sites — returns reportable domains (portal excluded).
+// ListSites handles GET /v1/sites — returns reportable domains.
 func (h *Handler) ListSites(w http.ResponseWriter, r *http.Request) {
 	domains := h.cfg.ReportableDomains()
 	if domains == nil {
@@ -255,16 +244,9 @@ func (h *Handler) MountFrontend(r chi.Router, embeddedFS embed.FS) {
 		return
 	}
 
-	portalSite := h.cfg.PortalSite()
-	apiKey := ""
-	if portalSite != nil {
-		apiKey = portalSite.APIKey
-	}
-
 	reportableDomains := h.cfg.ReportableDomains()
 
 	configJSON, _ := json.Marshal(map[string]any{
-		"apiKey":           apiKey,
 		"turnstileSiteKey": h.cfg.TurnstileSiteKey,
 		"sites":            reportableDomains,
 		"portalDomain":     h.cfg.PortalDomain,

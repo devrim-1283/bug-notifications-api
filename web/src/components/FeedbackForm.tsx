@@ -36,6 +36,17 @@ interface FieldErrors {
   title?: string;
   category?: string;
   description?: string;
+  pageUrl?: string;
+}
+
+function matchesSiteDomain(url: string, siteDomain: string): boolean {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    const domain = siteDomain.toLowerCase();
+    return hostname === domain || hostname.endsWith('.' + domain);
+  } catch {
+    return false;
+  }
 }
 
 export function FeedbackForm({ onSuccess, resolvedTheme }: Props) {
@@ -105,6 +116,9 @@ export function FeedbackForm({ onSuccess, resolvedTheme }: Props) {
     if (!form.title.trim()) errors.title = t.errTitleRequired;
     if (!form.category) errors.category = t.errCategoryRequired;
     if (!form.description.trim()) errors.description = t.errDescRequired;
+    if (form.pageUrl.trim() && form.siteId && !matchesSiteDomain(form.pageUrl.trim(), form.siteId)) {
+      errors.pageUrl = t.errPageUrlDomain;
+    }
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -200,7 +214,7 @@ export function FeedbackForm({ onSuccess, resolvedTheme }: Props) {
                 <div className="field-error">{fieldErrors.category}</div>
               )}
             </div>
-            <div className="field">
+            <div className={`field${fieldErrors.pageUrl ? ' has-error' : ''}`}>
               <label>{t.labelPageUrl}</label>
               <input
                 type="url"
@@ -208,6 +222,9 @@ export function FeedbackForm({ onSuccess, resolvedTheme }: Props) {
                 value={form.pageUrl}
                 onChange={(e) => updateField('pageUrl', e.target.value)}
               />
+              {fieldErrors.pageUrl && (
+                <div className="field-error">{fieldErrors.pageUrl}</div>
+              )}
             </div>
             <ImageUpload files={images} onChange={setImages} />
           </div>

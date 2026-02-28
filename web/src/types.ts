@@ -1,5 +1,4 @@
 export interface AppConfig {
-  apiKey: string;
   turnstileSiteKey: string;
   sites: string[];
   portalDomain: string;

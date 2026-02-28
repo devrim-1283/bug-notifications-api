@@ -9,7 +9,6 @@ declare global {
 let cachedConfig: AppConfig | null = null;
 
 const EMPTY_CONFIG: AppConfig = {
-  apiKey: '',
   turnstileSiteKey: '',
   sites: [],
   portalDomain: '',
@@ -18,7 +17,6 @@ const EMPTY_CONFIG: AppConfig = {
 // Ensure all fields have safe defaults (guards against null from JSON)
 function normalize(cfg: AppConfig): AppConfig {
   return {
-    apiKey: cfg.apiKey ?? '',
     turnstileSiteKey: cfg.turnstileSiteKey ?? '',
     sites: cfg.sites ?? [],
     portalDomain: cfg.portalDomain ?? '',

@@ -35,6 +35,7 @@ export interface Translations {
   errTitleRequired: string;
   errCategoryRequired: string;
   errDescRequired: string;
+  errPageUrlDomain: string;
   maxImages: string;
   siteSelectPlaceholder: string;
   typeBug: string;
@@ -82,6 +83,7 @@ const translations: Record<Language, Translations> = {
     errTitleRequired: 'Lütfen başlık giriniz',
     errCategoryRequired: 'Lütfen kategori seçiniz',
     errDescRequired: 'Lütfen açıklama giriniz',
+    errPageUrlDomain: 'URL seçili sitenin domainine ait olmalıdır',
     maxImages: 'En fazla 5 görsel yüklenebilir',
     siteSelectPlaceholder: 'Site seçin...',
     typeBug: 'Hata Bildirimi',
@@ -128,6 +130,7 @@ const translations: Record<Language, Translations> = {
     errTitleRequired: 'Please enter a title',
     errCategoryRequired: 'Please select a category',
     errDescRequired: 'Please enter a description',
+    errPageUrlDomain: 'URL must belong to the selected site domain',
     maxImages: 'Maximum 5 images allowed',
     siteSelectPlaceholder: 'Select a site...',
     typeBug: 'Bug Report',
@@ -174,6 +177,7 @@ const translations: Record<Language, Translations> = {
     errTitleRequired: 'Bitte geben Sie einen Titel ein',
     errCategoryRequired: 'Bitte wählen Sie eine Kategorie',
     errDescRequired: 'Bitte geben Sie eine Beschreibung ein',
+    errPageUrlDomain: 'URL muss zur ausgewählten Webseite gehören',
     maxImages: 'Maximal 5 Bilder erlaubt',
     siteSelectPlaceholder: 'Webseite auswählen...',
     typeBug: 'Fehlerbericht',
@@ -220,6 +224,7 @@ const translations: Record<Language, Translations> = {
     errTitleRequired: 'Пожалуйста, введите заголовок',
     errCategoryRequired: 'Пожалуйста, выберите категорию',
     errDescRequired: 'Пожалуйста, введите описание',
+    errPageUrlDomain: 'URL должен принадлежать выбранному сайту',
     maxImages: 'Максимум 5 изображений',
     siteSelectPlaceholder: 'Выбрать сайт...',
     typeBug: 'Ошибка',
@@ -266,6 +271,7 @@ const translations: Record<Language, Translations> = {
     errTitleRequired: 'Будь ласка, введіть заголовок',
     errCategoryRequired: 'Будь ласка, оберіть категорію',
     errDescRequired: 'Будь ласка, введіть опис',
+    errPageUrlDomain: 'URL повинен належати обраному сайту',
     maxImages: 'Максимум 5 зображень',
     siteSelectPlaceholder: 'Обрати сайт...',
     typeBug: 'Помилка',
@@ -312,6 +318,7 @@ const translations: Record<Language, Translations> = {
     errTitleRequired: 'Por favor, ingrese un título',
     errCategoryRequired: 'Por favor, seleccione una categoría',
     errDescRequired: 'Por favor, ingrese una descripción',
+    errPageUrlDomain: 'La URL debe pertenecer al sitio seleccionado',
     maxImages: 'Máximo 5 imágenes permitidas',
     siteSelectPlaceholder: 'Seleccionar sitio...',
     typeBug: 'Informe de error',

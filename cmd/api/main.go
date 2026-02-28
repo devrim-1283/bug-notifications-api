@@ -64,15 +64,12 @@ func main() {
 	// Health check (no auth required)
 	r.Get("/health", handler.HealthCheck)
 
-	// Portal frontend (no auth required) — SPA with embedded dist/
-	if cfg.PortalDomain != "" {
-		handler.MountFrontend(r, frontendFS)
-	}
+	// Frontend SPA — embedded dist/
+	handler.MountFrontend(r, frontendFS)
 
 	// Protected routes
 	r.Route("/v1", func(r chi.Router) {
 		r.Use(middleware.BrowserOnly())
-		r.Use(middleware.APIKeyAuth(cfg))
 		r.Get("/sites", handler.ListSites)
 		r.Post("/reports", handler.CreateReport)
 	})
